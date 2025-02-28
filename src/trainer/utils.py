@@ -263,16 +263,19 @@ def _git_version():
 
 def init_cuda(args, device_id=-1):
     if args.device in ['gpu', 'cuda']:
-        assert(torch.cuda.is_available()), "No CUDA device available!"
-        logger.info('Initializing CUDA/GPU! Device: {}'.format(torch.cuda.current_device()))
-        if device_id < 0:
-            device = torch.device('cuda')
+        if not torch.cuda.is_available():
+            logger.warning("CUDA is not available, Using CPU.")
+            device = torch.device('cpu')
         else:
-            torch.cuda.set_device(device_id)
-            logger.warning('NCCL timeout is set to 2 hours to allow for single-GPU evaluation during multi-GPU sessions. To enable multi-GPU evaluation, set distributed=True in trainer.evaluate()')
-            dist.init_process_group(backend='nccl', timeout=timedelta(hours=2))
-            logger.info(f"Setting cuda device = {device_id}")
-            device = torch.device(device_id)
+            logger.info('Initializing CUDA/GPU! Device: {}'.format(torch.cuda.current_device()))
+            if device_id < 0:
+                device = torch.device('cuda')
+            else:
+                torch.cuda.set_device(device_id)
+                logger.warning('NCCL timeout is set to 2 hours to allow for single-GPU evaluation during multi-GPU sessions. To enable multi-GPU evaluation, set distributed=True in trainer.evaluate()')
+                dist.init_process_group(backend='nccl', timeout=timedelta(hours=2))
+                logger.info(f"Setting cuda device = {device_id}")
+                device = torch.device(device_id)
     elif args.device in ['mps']:
         logger.info('Initializing Apple Neural Engine!')
         device = torch.device('mps')

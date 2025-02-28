@@ -4,7 +4,7 @@ import sys
 import numpy 
 import random
 
-from src.trainer import which
+from src.trainer import which #checks GPU requirements
 if which('nvidia-smi') is not None:
     min=8000
     deviceid = 0
@@ -14,7 +14,6 @@ if which('nvidia-smi') is not None:
     if mem < min:
         print(f'Less GPU memory than requested ({mem}<{min}). Terminating.')
         sys.exit()
-
 
 import torch
 from torch.utils.data import DataLoader
@@ -39,6 +38,7 @@ def main():
     # Initialize arguments
     args = init_argparse()
 
+    # Choose the right performance tracking tools based on the number of classes
     if args.num_classes<=2:
         from src.models.metrics_classifier import metrics, minibatch_metrics, minibatch_metrics_string
     else:
@@ -55,7 +55,7 @@ def main():
     else:
         device_id = -1
     
-    # Initialize logger
+    # Initialize logger to track progress
     logger = logging.getLogger('')
     init_logger(args, device_id)
 
@@ -66,12 +66,12 @@ def main():
     if device_id <= 0:
         logging_printout(args)
 
-    # Initialize device and data type
+    # Initialize device and data type(CPU or GPU)
     device, dtype = init_cuda(args, device_id)
 
     # Fix possible inconsistencies in arguments
     args = fix_args(args)
-    # Set a manual random seed for torch, cuda, numpy, and random
+    # Set a manual random seed for torch, cuda, numpy, and random (For consistant results)
     args = set_seed(args, device_id)
 
     distributed = (get_world_size() > 1)
@@ -82,14 +82,18 @@ def main():
     # Fix a seed for dataloading (useful when num_train!=-1 and one wants the same training data across runs)
     if args.fix_data:
         torch.manual_seed(165937750084982)
-    # Initialize dataloder
+    # Initialize dataloder(Prepares data sets and specifies data location)
+    args.datadir = "data/sample_data/run12"
     args, datasets = initialize_datasets(args, args.datadir, num_pts=None, testfile=args.testfile, balance=(args.num_classes==2), RAMdataset=args.RAMdataset)
 
-    # Construct PyTorch dataloaders from datasets
+    # Construct PyTorch dataloaders from datasets(Function to format data into batches)
     collate = lambda data: collate_fn(data, scale=args.scale, nobj=args.nobj)
     
     # Whether testing set evaluation should be distributed
+    print("Datasets keys:", datasets.keys())
     distribute_eval=args.distribute_eval
+
+    # Set up how data will be loaded
     if distributed:
         samplers = {'train': DistributedSampler(datasets['train'], shuffle=args.shuffle),
                     'valid': DistributedSampler(datasets['valid'], shuffle=False),
@@ -97,6 +101,7 @@ def main():
     else:
         samplers = {split: None for split in datasets.keys()}
 
+    # Create data loaders to fetch batches of data for training
     dataloaders = {split: DataLoader(dataset,
                                      batch_size = args.batch_size,
                                      shuffle = args.shuffle if (split == 'train' and not distributed) else False,
@@ -123,16 +128,18 @@ def main():
     if distributed:
         model = DistributedDataParallel(model, device_ids=[device_id])
 
+    restart_epochs = []
+
     # Initialize the scheduler and optimizer
     if args.task.startswith('eval'):
         optimizer = scheduler = None
-        restart_epochs = []
         summarize = False
     else:
         optimizer = init_optimizer(args, model, len(dataloaders['train']))
-        scheduler, restart_epochs = init_scheduler(args, optimizer)
+        scheduler, restart_epochs = init_scheduler(args, optimizer)  # Unpacking the tuple
 
-    # Define a loss function.
+
+    # Define a loss function.(How the model should measure errors)
     # loss_fn = torch.nn.functional.cross_entropy
     if args.num_classes==1:
         raise NotImplementedError

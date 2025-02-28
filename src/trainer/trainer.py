@@ -2,7 +2,10 @@ import torch
 from .utils import all_gather, synchronize, get_world_size
 import numpy as np
 from itertools import islice
-from .scheduler import GradualWarmupScheduler, GradualCooldownScheduler
+#from .scheduler import GradualWarmupScheduler, GradualCooldownScheduler
+from torch.optim.lr_scheduler import OneCycleLR  #Dyanmic learning rate implementation
+import matplotlib.pyplot as plt #Plot learning rate
+from IPython.display import display, clear_output
 import os
 from datetime import datetime
 from math import inf, ceil
@@ -24,8 +27,11 @@ class Trainer:
         self.minibatch_metrics_fn = minibatch_metrics_fn
         self.minibatch_metrics_string_fn = minibatch_metrics_string_fn
         self.optimizer = optimizer
-        self.scheduler = self._wrap_scheduler(scheduler)
+        self.scheduler = scheduler #For dyanmic scheduler
         self.restart_epochs = restart_epochs
+
+        self.lr_history = [] #Store learning rates for plotting
+        self.loss_history = []
 
         self.summarize_csv =args.summarize_csv
         self.summarize = args.summarize
@@ -44,24 +50,15 @@ class Trainer:
         self.dtype = dtype
 
     def _wrap_scheduler(self, scheduler):
-        if self.args.num_epoch < self.args.warmup:
-            return scheduler
-        if self.args.warmup > 0:
-            scheduler = GradualWarmupScheduler(self.optimizer, 1, len(self.dataloaders['train'])*self.args.warmup, after_scheduler=scheduler)
-        if self.args.cooldown > 0:
-            if self.args.lr_decay_type == 'warm':
-                coodlown_start = (self.args.num_epoch - self.args.warmup - self.args.cooldown)*len(self.dataloaders['train'])
-                cooldown_length = self.args.cooldown*len(self.dataloaders['train'])
-                scheduler = GradualCooldownScheduler(self.optimizer, self.args.lr_final, coodlown_start, cooldown_length, scheduler)
-            elif self.args.lr_decay_type == 'flat':
-                coodlown_start = (self.args.num_epoch - self.args.warmup - self.args.cooldown)*len(self.dataloaders['train'])
-                cooldown_length = self.args.cooldown*len(self.dataloaders['train'])
-                scheduler = GradualCooldownScheduler(self.optimizer, self.args.lr_final, coodlown_start, cooldown_length, scheduler)
-            elif self.args.lr_decay_type == 'cos':
-                coodlown_start = (self.args.num_epoch - self.args.warmup - self.args.cooldown)*len(self.dataloaders['train'])
-                cooldown_length = self.args.cooldown*len(self.dataloaders['train'])
-                scheduler = GradualCooldownScheduler(self.optimizer, self.args.lr_final, coodlown_start, cooldown_length, scheduler)
-        return scheduler
+        return OneCycleLR(
+        self.optimizer, 
+        max_lr=0.015,  # Adjust max learning rate
+        steps_per_epoch=len(self.dataloaders['train']), 
+        epochs=self.args.num_epoch,
+        pct_start=0.2,  # 20% of training is warmup
+        anneal_strategy='cos',  # Cosine decay
+        final_div_factor=100  # Reduce learning rate at the end
+    )
 
     def _save_checkpoint(self, valid_metrics=None):
         if not self.args.save:
@@ -231,16 +228,32 @@ class Trainer:
 
 
     def _step_lr_batch(self):
-        if self.args.lr_minibatch:
-            self.scheduler.step()
+        self.scheduler.step()
+        self.scheduler.step()
+        self.lr_history.append(self.scheduler.get_last_lr()[0]) #Track learning rate for plotting
 
     def _step_lr_epoch(self):
-        if not self.args.lr_minibatch:
-            self.scheduler.step()
+        #if not self.args.lr_minibatch:
+            #self.scheduler.step()
+        pass
+
+    #Plots the learning rate schedule over training
+    def plot_lr(self):
+        plt.figure(figsize=(8,5))
+        plt.plot(self.lr_history, label="Learning Rate", color='blue')
+        plt.xlabel("Batch Step")
+        plt.ylabel("Learning Rate")
+        plt.title("Learning Rate Schedule")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
     def train(self, trial=None, metric_to_report='loss'):
         start_epoch = self.epoch
         start_minibatch = self.minibatch
+        patience = 5  # Stop if validation loss doesn't improve for 5 epochs
+        best_val_loss = float('inf')  # Track best validation loss
+        patience_counter = 0  # Counter for epochs with no improvement
         for epoch in range(start_epoch, self.args.num_epoch + 1):
             self.epoch = epoch
             if epoch > start_epoch:
@@ -262,6 +275,23 @@ class Trainer:
                 self._save_checkpoint()
                 valid_metrics, _ = self.log_predict(valid_predict, valid_targets, 'valid', epoch=epoch)
                 self._save_checkpoint(valid_metrics)
+
+                # Extract validation loss
+                current_val_loss = valid_metrics['loss']
+
+                # Check if validation loss improved
+                if current_val_loss < best_val_loss:
+                    best_val_loss = current_val_loss
+                    patience_counter = 0  # Reset counter
+                    logger.info(f"Validation loss improved to {best_val_loss:.4f}")
+                else:
+                    patience_counter += 1
+                    logger.info(f"Validation loss did not improve for {patience_counter}/{patience} epochs")
+
+                # Stop training if validation loss hasn't improved for 'patience' epochs
+                if patience_counter >= patience:
+                    logger.info(f"Early stopping triggered at epoch {epoch}. Stopping training.")
+                    break
             synchronize()
             
             if trial:
@@ -275,6 +305,30 @@ class Trainer:
             logger.info(f'FINISHED Epoch {epoch}\n_________________________\n')
             
         if self.summarize: self.writer.close()
+
+        # Plot Training Loss and Learning Rate Schedule
+        if self.device_id <= 0: 
+            plt.figure(figsize=(12, 5))
+
+        # Plot Training Loss
+            plt.subplot(1, 2, 1)
+            plt.plot(self.loss_history, label="Training Loss", color="blue")
+            plt.xlabel("Batch")
+            plt.ylabel("Loss")
+            plt.title("Training Loss Over Time")
+            plt.legend()
+
+        # Plot Learning Rate Schedule
+            plt.subplot(1, 2, 2)
+            plt.plot(self.lr_history, label="Learning Rate", color="red")
+            plt.xlabel("Batch")
+            plt.ylabel("Learning Rate")
+            plt.title("Learning Rate Over Time")
+            plt.legend()
+
+        # Show & Save the Figure
+            plt.savefig("training_progress.png") 
+            plt.show()
 
         return self.best_epoch, self.best_metrics
 
@@ -317,6 +371,14 @@ class Trainer:
             self.optimizer.zero_grad()
             loss.backward()
             bwd_t = datetime.now()
+
+             # Update optimizer and scheduler (OneCycleLR will dynamically adjust LR)
+            self.optimizer.step()
+            self.scheduler.step()
+
+            # Store loss and learning rate for plotting
+            self.loss_history.append(loss.item())
+            self.lr_history.append(self.scheduler.get_last_lr()[0])
 
             if not self.args.quiet and not all(param.grad is not None for param in dict(self.model.named_parameters()).values()):
                 logger.warning("The following params have missing gradients at backward pass (they are probably not being used in output):\n", {key: '' for key, param in self.model.named_parameters() if param.grad is None})
@@ -461,3 +523,5 @@ class Trainer:
             logger.info('Predictions already saved above')
 
         return metrics, logstring
+    
+    
