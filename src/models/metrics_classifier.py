@@ -29,7 +29,7 @@ def minibatch_metrics_string(metrics):
 
 
 def Entropy(predict, targets):
-    return torch.nn.CrossEntropyLoss(label_smoothing=0.75)(predict, targets.long())     # Cross Entropy Loss (positive number). The closer to 0 the better.
+    return torch.nn.CrossEntropyLoss(label_smoothing=0.075)(predict, targets.long())     # Cross Entropy Loss (positive number). The closer to 0 the better.
 
 def Accuracy(predict, targets):
     return (predict.argmax(dim=1) == targets.long()).float().mean()  # right now this is accuracy of classification
