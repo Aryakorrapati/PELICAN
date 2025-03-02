@@ -29,6 +29,8 @@ from src.trainer import init_optimizer, init_scheduler
 
 from src.dataloaders import initialize_datasets, collate_fn
 
+from src.models.dynamic_entropy_loss import DynamicEntropyLoss
+
 # This makes printing tensors more readable.
 torch.set_printoptions(linewidth=1000, threshold=100000, sci_mode=False)
 
@@ -144,7 +146,7 @@ def main():
     if args.num_classes==1:
         raise NotImplementedError
     elif args.num_classes==2:
-        loss_fn = torch.nn.CrossEntropyLoss()
+        loss_fn = DynamicEntropyLoss(total_epochs=args.num_epoch)
     else:
         loss_fn = lambda predict, targets: torch.nn.CrossEntropyLoss()(predict, targets.long().argmax(dim=1))
     

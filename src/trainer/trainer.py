@@ -303,6 +303,7 @@ class Trainer:
                     raise optuna.exceptions.TrialPruned()
 
             logger.info(f'FINISHED Epoch {epoch}\n_________________________\n')
+            self.loss_fn.update_epoch(epoch)
             
         if self.summarize: self.writer.close()
 
