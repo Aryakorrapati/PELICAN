@@ -26,7 +26,7 @@ def minibatch_metrics_string(metrics):
     string = ', L:{:> 9.4f}, ACC:{:> 9.4f}, AUC:{:> 9.4f}'.format(*metrics)
     return string
 
-def get_dynamic_smoothing(epoch, total_epochs, start_smoothing=0.15, final_smoothing=0.02):
+def get_dynamic_smoothing(epoch, total_epochs, start_smoothing=0.1, final_smoothing=0.02):
     progress = epoch / total_epochs
     return (1 - progress) * start_smoothing + progress * final_smoothing
 
