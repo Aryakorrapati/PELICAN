@@ -1,7 +1,7 @@
 import torch
 
 class DynamicEntropyLoss:
-    def __init__(self, total_epochs, start_smoothing=0.1, final_smoothing=0):
+    def __init__(self, total_epochs, start_smoothing=0.1, final_smoothing=0.01):
         self.total_epochs = total_epochs
         self.start_smoothing = start_smoothing
         self.final_smoothing = final_smoothing
