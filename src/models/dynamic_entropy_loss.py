@@ -2,7 +2,7 @@ import torch
 import math
 
 class DynamicEntropyLoss:
-    def __init__(self, total_epochs, start_smoothing=0.1, final_smoothing=0):
+    def __init__(self, total_epochs, start_smoothing=0.1, final_smoothing=0.01):
         self.total_epochs = total_epochs
         self.start_smoothing = start_smoothing
         self.final_smoothing = final_smoothing
@@ -17,4 +17,5 @@ class DynamicEntropyLoss:
 
     def get_dynamic_smoothing(self, epoch):
         cosine_decay = 0.5 * (1 + math.cos(math.pi * epoch / self.total_epochs))
-        return self.final_smoothing + (self.start_smoothing - self.final_smoothing) * cosine_decay
+        raw_smoothing = self.final_smoothing + (self.start_smoothing - self.final_smoothing) * cosine_decay
+        return max(0.01, raw_smoothing)  # Add floor to prevent total loss of regularization
