@@ -55,7 +55,7 @@ class Trainer:
         max_lr=0.01,  # Adjust max learning rate
         steps_per_epoch=len(self.dataloaders['train']), 
         epochs=self.args.num_epoch,
-        pct_start=0.15,  # 15% of training is warmup
+        pct_start=0.22,  # 22% of training is warmup
         anneal_strategy='cos',  # Cosine decay
         final_div_factor=100  # Reduce learning rate at the end
     )
