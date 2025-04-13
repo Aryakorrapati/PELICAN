@@ -355,24 +355,21 @@ def apply_mixup_cutmix(inputs, targets, alpha=0.4, mode='random'):
     else:  # CutMix
         bbx1, bby1, bbx2, bby2 = rand_bbox(inputs.size(), lam)
         mixed_inputs = inputs.clone()
-        mixed_inputs[:, :, bbx1:bbx2, bby1:bby2] = inputs[rand_index, :, bbx1:bbx2, bby1:bby2]
+        mixed_inputs[:, bbx1:bbx2, :] = inputs[rand_index, bbx1:bbx2, :]
         lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (inputs.size(-1) * inputs.size(-2)))
 
     return mixed_inputs, target_a, target_b, lam
 
 def rand_bbox(size, lam):
-    W = size[2]
-    H = size[3]
+    # Handle 3D tensor: [batch_size, N_particles, features]
+    L = size[1]  # N_particles (sequence length)
     cut_rat = np.sqrt(1. - lam)
-    cut_w = int(W * cut_rat)
-    cut_h = int(H * cut_rat)
+    cut_l = int(L * cut_rat)
 
-    cx = np.random.randint(W)
-    cy = np.random.randint(H)
+    cx = np.random.randint(L)
 
-    bbx1 = np.clip(cx - cut_w // 2, 0, W)
-    bby1 = np.clip(cy - cut_h // 2, 0, H)
-    bbx2 = np.clip(cx + cut_w // 2, 0, W)
-    bby2 = np.clip(cy + cut_h // 2, 0, H)
+    bbx1 = np.clip(cx - cut_l // 2, 0, L)
+    bbx2 = np.clip(cx + cut_l // 2, 0, L)
 
-    return bbx1, bby1, bbx2, bby2
+    # Return dummy y-values to keep interface the same
+    return bbx1, 0, bbx2, 1
