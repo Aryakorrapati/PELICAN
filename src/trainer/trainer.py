@@ -11,6 +11,7 @@ from datetime import datetime
 from math import inf, ceil
 import logging
 logger = logging.getLogger(__name__)
+from src.trainer.utils import apply_mixup_cutmix
 
 class Trainer:
     """
@@ -55,7 +56,7 @@ class Trainer:
         max_lr=0.01,  # Adjust max learning rate
         steps_per_epoch=len(self.dataloaders['train']), 
         epochs=self.args.num_epoch,
-        pct_start=0.18,  # 18% of training is warmup
+        pct_start=0.20,  # 20% of training is warmup
         anneal_strategy='cos',  # Cosine decay
         final_div_factor=100  # Reduce learning rate at the end
     )
@@ -362,10 +363,30 @@ class Trainer:
         for batch_idx, data in data_slice:
             self.minibatch = batch_idx
             batch_t = datetime.now()
-            # Get targets and predictions
+
+            inputs = data["inputs"].to(self.device)
             targets = self._get_target(data)
+
+            # Apply Mixup or CutMix if enabled
+            if getattr(self.args, 'aug_mixcut', False):
+                inputs, targets_a, targets_b, lam = apply_mixup_cutmix(inputs, targets, alpha=0.4, mode='random')
+                data["inputs"] = inputs  # update input batch with augmented one
+                mixcut = True
+            else:
+                mixcut = False
+
             predict = self.model(data)
             fwd_t = datetime.now()
+
+            # Compute loss
+            if mixcut:
+                loss = lam * self.loss_fn(predict['predict'], targets_a) + (1 - lam) * self.loss_fn(predict['predict'], targets_b)
+            else:
+                loss = self.loss_fn(predict['predict'], targets)
+
+            self.optimizer.zero_grad()
+            loss.backward()
+            bwd_t = datetime.now()
 
             # Calculate loss and backprop
             loss = self.loss_fn(predict['predict'], targets)

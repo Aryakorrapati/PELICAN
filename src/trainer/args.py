@@ -5,6 +5,9 @@ from math import inf
 #### Argument parser ####
 
 def setup_argparse():
+    
+    #CutMix and Mixup augmentations
+    parser.add_argument('--aug_mixcut', action='store_true', help='Enable Mixup + CutMix augmentations')
 
     parser = argparse.ArgumentParser(description='PELICAN network options')
 

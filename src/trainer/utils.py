@@ -344,3 +344,35 @@ def synchronize():
         return
     logger.info('Waiting for other processes to reach a barrier.')
     dist.barrier()
+
+def apply_mixup_cutmix(inputs, targets, alpha=0.4, mode='random'):
+    lam = np.random.beta(alpha, alpha)
+    rand_index = torch.randperm(inputs.size(0))
+    target_a, target_b = targets, targets[rand_index]
+
+    if mode == 'mixup' or (mode == 'random' and random.random() < 0.5):
+        mixed_inputs = lam * inputs + (1 - lam) * inputs[rand_index]
+    else:  # CutMix
+        bbx1, bby1, bbx2, bby2 = rand_bbox(inputs.size(), lam)
+        mixed_inputs = inputs.clone()
+        mixed_inputs[:, :, bbx1:bbx2, bby1:bby2] = inputs[rand_index, :, bbx1:bbx2, bby1:bby2]
+        lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (inputs.size(-1) * inputs.size(-2)))
+
+    return mixed_inputs, target_a, target_b, lam
+
+def rand_bbox(size, lam):
+    W = size[2]
+    H = size[3]
+    cut_rat = np.sqrt(1. - lam)
+    cut_w = int(W * cut_rat)
+    cut_h = int(H * cut_rat)
+
+    cx = np.random.randint(W)
+    cy = np.random.randint(H)
+
+    bbx1 = np.clip(cx - cut_w // 2, 0, W)
+    bby1 = np.clip(cy - cut_h // 2, 0, H)
+    bbx2 = np.clip(cx + cut_w // 2, 0, W)
+    bby2 = np.clip(cy + cut_h // 2, 0, H)
+
+    return bbx1, bby1, bbx2, bby2
