@@ -361,11 +361,10 @@ class Trainer:
         else:
             data_slice = enumerate(dataloader)
         for batch_idx, data in data_slice:
-            print(f"Data keys: {list(data.keys())}")
             self.minibatch = batch_idx
             batch_t = datetime.now()
 
-            inputs = data["inputs"].to(self.device)
+            inputs = data["Pmu"].to(self.device)
             targets = self._get_target(data)
 
             # Apply Mixup or CutMix if enabled
