@@ -344,6 +344,8 @@ class Trainer:
         return targets
 
     def train_epoch(self, start_minibatch=0):
+        print(f"Data keys: {list(data.keys())}")
+        exit()
         dataloader = self.dataloaders['train']
 
         self.loss_val, self.alt_loss_val, self.batch_time = 0, 0, 0
