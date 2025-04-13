@@ -6,12 +6,14 @@ from math import inf
 
 def setup_argparse():
     
-    #CutMix and Mixup augmentations
-    parser.add_argument('--aug_mixcut', action='store_true', help='Enable Mixup + CutMix augmentations')
+    
 
     parser = argparse.ArgumentParser(description='PELICAN network options')
 
     parser.add_argument('--yaml', type=str, default=None, action='append')
+
+    #CutMix and Mixup augmentations
+    parser.add_argument('--aug_mixcut', action='store_true', help='Enable Mixup + CutMix augmentations')
 
     parser.add_argument('--host', default='worker1172')
     parser.add_argument('--password', default='asoetuh')
