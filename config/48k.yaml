@@ -23,3 +23,5 @@ num_channels_m_out:
   - 35
 num_channels_out: 
   - 60
+
+aug_alpha: 0.2
