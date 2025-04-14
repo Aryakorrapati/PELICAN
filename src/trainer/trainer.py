@@ -389,7 +389,6 @@ class Trainer:
             bwd_t = datetime.now()
 
             # Calculate loss and backprop
-            loss = self.loss_fn(predict['predict'], targets)
             self.optimizer.zero_grad()
             loss.backward()
             bwd_t = datetime.now()
