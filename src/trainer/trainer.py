@@ -389,9 +389,9 @@ class Trainer:
             bwd_t = datetime.now()
 
             # Calculate loss and backprop
-            self.optimizer.zero_grad()
-            loss.backward()
-            bwd_t = datetime.now()
+            #self.optimizer.zero_grad()
+            #loss.backward()
+            #bwd_t = datetime.now()
 
              # Update optimizer and scheduler (OneCycleLR will dynamically adjust LR)
             self.optimizer.step()
