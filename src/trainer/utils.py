@@ -350,13 +350,10 @@ def apply_mixup_cutmix(inputs, targets, alpha=0.4, mode='random'):
     rand_index = torch.randperm(inputs.size(0))
     target_a, target_b = targets, targets[rand_index]
 
-    if mode == 'mixup' or (mode == 'random' and random.random() < 0.5):
+    if mode == 'mixup':
         mixed_inputs = lam * inputs + (1 - lam) * inputs[rand_index]
-    else:  # CutMix
-        bbx1, bby1, bbx2, bby2 = rand_bbox(inputs.size(), lam)
-        mixed_inputs = inputs.clone()
-        mixed_inputs[:, bbx1:bbx2, :] = inputs[rand_index, bbx1:bbx2, :]
-        lam = 1 - ((bbx2 - bbx1) * (bby2 - bby1) / (inputs.size(-1) * inputs.size(-2)))
+    else:
+        raise ValueError("CutMix is not supported for permutation-invariant jet inputs.")
 
     return mixed_inputs, target_a, target_b, lam
 

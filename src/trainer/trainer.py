@@ -370,7 +370,7 @@ class Trainer:
             # Apply Mixup or CutMix if enabled
             if getattr(self.args, 'aug_mixcut', False):
                 alpha = getattr(self.args, 'aug_alpha', 0.5)
-                inputs, targets_a, targets_b, lam = apply_mixup_cutmix(inputs, targets, alpha=alpha, mode='random')
+                inputs, targets_a, targets_b, lam = apply_mixup_cutmix(inputs, targets, alpha=alpha, mode='mixup')
                 data["inputs"] = inputs  # update input batch with augmented one
                 mixcut = True
             else:
