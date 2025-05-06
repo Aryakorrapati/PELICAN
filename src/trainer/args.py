@@ -15,6 +15,10 @@ def setup_argparse():
     #CutMix and Mixup augmentations
     parser.add_argument('--aug_mixcut', action='store_true', help='Enable Mixup + CutMix augmentations')
 
+    #Condor Max_lr
+    parser.add_argument('--max_lr', type=float, default=None, help='Override max learning rate (OneCycleLR)')
+    parser.add_argument('--mix_mode', type=str, default='mixup', help='Mixup mode (only "mixup" supported)')
+
     parser.add_argument('--host', default='worker1172')
     parser.add_argument('--password', default='asoetuh')
     parser.add_argument('--port', default='35719')

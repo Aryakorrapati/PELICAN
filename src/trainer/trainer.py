@@ -370,7 +370,7 @@ class Trainer:
             # Apply Mixup or CutMix if enabled
             if getattr(self.args, 'aug_mixcut', False):
                 alpha = getattr(self.args, 'aug_alpha', 0.5)
-                inputs, targets_a, targets_b, lam = apply_mixup_cutmix(inputs, targets, alpha=alpha, mode='mixup')
+                targets_a, targets_b, lam = targets, targets, 1.0
                 data["inputs"] = inputs  # update input batch with augmented one
                 mixcut = True
             else:
@@ -380,10 +380,7 @@ class Trainer:
             fwd_t = datetime.now()
 
             # Compute loss
-            if mixcut:
-                loss = lam * self.loss_fn(predict['predict'], targets_a) + (1 - lam) * self.loss_fn(predict['predict'], targets_b)
-            else:
-                loss = self.loss_fn(predict['predict'], targets)
+            loss = self.loss_fn(predict['predict'], targets)
 
             self.optimizer.zero_grad()
             loss.backward()

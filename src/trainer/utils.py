@@ -245,7 +245,16 @@ def init_scheduler(args, optimizer):
         # scheduler = sched.LambdaLR(optimizer, lr_lambda)
         scheduler = sched.ExponentialLR(optimizer, exp(log(lr_ratio) / lr_decay))
     elif args.lr_decay_type.startswith('one'):
-        scheduler = sched.OneCycleLR(optimizer, 10 * lr_init, epochs=args.num_epoch, steps_per_epoch=minibatch_per_epoch)
+        max_lr = args.max_lr if args.max_lr is not None else 10 * lr_init
+        scheduler = sched.OneCycleLR(
+            optimizer,
+            max_lr=max_lr,
+            epochs=args.num_epoch,
+            steps_per_epoch=minibatch_per_epoch,
+            pct_start=0.25,  # Optional: you can make this configurable too
+            anneal_strategy='cos',  # Consistent with your other decay styles
+            div_factor=25.0  # Optional: set how far to start below max_lr
+        )
     else:
         raise ValueError('Incorrect choice for lr_decay_type!')
 
