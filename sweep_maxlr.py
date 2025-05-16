@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import subprocess, re, sys
 from datetime import datetime
+import os
 
 # ─── CONFIG ──────────────────────────────────────────────────────────────
 TRAIN_SCRIPT = "train_pelican_classifier.py"
@@ -11,7 +12,7 @@ COMMON_ARGS = [
     "--prefix",     "swan"
 ]
 MAX_LRS = [0.01, 0.008, 0.0065, 0.005, 0.004]
-LOG_FILE = "sweep_log.txt"
+LOG_FILE = os.path.expanduser("~/sweep_log.txt")
 # ───────────────────────────────────────────────────────────────────────────
 
 # Open log file for appending
