@@ -160,6 +160,9 @@ class PELICANClassifier(nn.Module):
 
         inputs = self.apply_eq1to2(particle_scalars, rank1_inputs, rank2_inputs, edge_mask, nobj, irc_weight)
 
+        print("inputs shape before net2to2:", inputs.shape)
+        print("net2to2 expected input dim:", self.net2to2.in_dim)
+
         # Apply the sequence of PELICAN equivariant 2->2 blocks with the IRC weighting.
         act1 = self.net2to2(inputs, mask = edge_mask.unsqueeze(-1), nobj = nobj,
                             irc_weight = irc_weight if self.irc_safe else None)
