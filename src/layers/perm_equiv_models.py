@@ -388,6 +388,9 @@ class Net2to2(nn.Module):
         self.to(device=device, dtype=dtype)
 
     def forward(self, x, mask=None, nobj=None, softmask_ir=None, irc_weight=None):
+        print("Net2to2 input shape:", x.shape)
+        print("Net2to2 expected dim:", self.in_dim)
+        
         '''
         x: N x m x m x in_dim
         Returns: N x m x m x out_dim
