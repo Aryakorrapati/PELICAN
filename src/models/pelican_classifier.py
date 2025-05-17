@@ -100,6 +100,7 @@ class PELICANClassifier(nn.Module):
                                           mode=mode, device = device, dtype = dtype)
         
         print("MODEL INIT DEBUG: num_channels_2to2 being passed to Net2to2 is:", num_channels_2to2)
+        self.input_proj = torch.nn.Linear(11, 60)
 
         # This is the main part of the network -- a sequence of permutation-equivariant 2->2 blocks
         # Each 2->2 block consists of a component-wise messaging layer that mixes channels, followed by the equivariant aggegration over particle indices
@@ -159,6 +160,10 @@ class PELICANClassifier(nn.Module):
                                                         rank1_mask=particle_mask.unsqueeze(-1) ,rank2_mask=edge_mask.unsqueeze(-1))
 
         inputs = self.apply_eq1to2(particle_scalars, rank1_inputs, rank2_inputs, edge_mask, nobj, irc_weight)
+
+        if inputs.shape[-1] != self.net2to2.in_dim:
+            inputs = self.input_proj(inputs)
+            print("inputs shape after projection:", inputs.shape)
 
         print("inputs shape before net2to2:", inputs.shape)
         print("net2to2 expected input dim:", self.net2to2.in_dim)
