@@ -367,7 +367,6 @@ class Net2to2(nn.Module):
                  activation='leakyrelu', dropout=True, drop_rate=0.25, batchnorm=None,
                  config='s', average_nobj=49, factorize=False, masked=True, device=torch.device('cpu'), dtype=torch.float):
         super(Net2to2, self).__init__()
-        print("Net2to2 initialized with in_dim =", self.in_dim)
         
         self.masked = masked
         self.num_channels = num_channels
@@ -377,6 +376,8 @@ class Net2to2(nn.Module):
         self.batchnorm = batchnorm
         num_layers = len(num_channels) - 1
         self.in_dim = num_channels_m[0][0] if len(num_channels_m[0]) > 0 else num_channels[0]
+
+        print("Net2to2 initialized with in_dim =", self.in_dim)
 
         eq_out_dims = [num_channels_m[i+1][0] if len(num_channels_m[i+1]) > 0 else num_channels[i+1] for i in range(num_layers-1)] + [num_channels[-1]]
 
