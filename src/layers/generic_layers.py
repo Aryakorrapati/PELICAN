@@ -250,11 +250,12 @@ class InputEncoder(nn.Module):
     def __init__(self, rank1_dim_multiplier, rank2_dim_multiplier, rank1_in_dim = 0, rank2_in_dim = 1, mode = 'log', device=torch.device('cpu'), dtype=torch.float):
         super().__init__()
 
+        self.embedding_dim = rank2_dim_multiplier
         self.rank2_embed_mlp = nn.Sequential(
-            nn.Linear(1, 32),   
+            nn.Linear(self.embedding_dim, 32),   
             nn.ReLU(),
             nn.Dropout(0.2),    # helps prevent overfitting
-            nn.Linear(8, 1)
+            nn.Linear(32, 1)
         )
 
         self.rank1_in_dim = rank1_in_dim
@@ -281,13 +282,13 @@ class InputEncoder(nn.Module):
         else:
             rank1_out = None
         if self.rank2_in_dim > 0: 
-            dot_shape = dot_products.shape
-            # Reshape for MLP: expects (N, 1)
-            mlp_in = dot_products.reshape(-1, 1)
-            mlp_out = self.rank2_embed_mlp(mlp_in)
-            rank2_out = mlp_out.view(dot_shape)
+            orig_shape = dot_products.shape  # (B, N, N, embedding_dim)
+            mlp_in = dot_products.reshape(-1, self.embedding_dim)  # (B*N*N, embedding_dim)
+            mlp_out = self.rank2_embed_mlp(mlp_in)                # (B*N*N, 1)
+            rank2_out = mlp_out.view(orig_shape[:-1])             # (B, N, N)
         else:
             rank2_out = None
+
 
 
         if rank1_mask is not None and self.rank1_in_dim > 0:
