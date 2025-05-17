@@ -1,9 +1,0 @@
-Universe   = vanilla
-Executable = run_train.sh
-Arguments  = $(maxlr)
-Log        = condlogs/job_$(Process).log
-Output     = condlogs/job_$(Process).out
-Error      = condlogs/job_$(Process).err
-RequestCpus = 1
-RequestMemory = 4 GB
-Queue maxlr in 0.012 0.010 0.008 0.0065 0.005 0.004
