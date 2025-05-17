@@ -294,8 +294,9 @@ class InputEncoder(nn.Module):
         if rank1_mask is not None and self.rank1_in_dim > 0:
             rank1_out = torch.where(rank1_mask, rank1_out, self.zero)
         if rank2_mask is not None and self.rank2_in_dim > 0: 
-            print("rank2_out shape:", rank2_out.shape)
-            print("rank2_mask shape:", rank2_mask.shape)
+            if rank2_mask.shape != rank2_out.shape:
+                if rank2_mask.shape[-1] == 1:
+                    rank2_mask = rank2_mask.squeeze(-1)
             rank2_out = torch.where(rank2_mask, rank2_out, self.zero)
         return rank1_out, rank2_out
         
