@@ -99,7 +99,6 @@ class PELICANClassifier(nn.Module):
                                           rank1_in_dim = self.rank1_dim, rank2_in_dim=self.rank2_dim, 
                                           mode=mode, device = device, dtype = dtype)
         
-        print("MODEL INIT DEBUG: num_channels_2to2 being passed to Net2to2 is:", num_channels_2to2)
         self.input_proj = torch.nn.Linear(11, 60)
 
         # This is the main part of the network -- a sequence of permutation-equivariant 2->2 blocks
@@ -163,10 +162,6 @@ class PELICANClassifier(nn.Module):
 
         if inputs.shape[-1] != self.net2to2.in_dim:
             inputs = self.input_proj(inputs)
-            print("inputs shape after projection:", inputs.shape)
-
-        print("inputs shape before net2to2:", inputs.shape)
-        print("net2to2 expected input dim:", self.net2to2.in_dim)
 
         # Apply the sequence of PELICAN equivariant 2->2 blocks with the IRC weighting.
         act1 = self.net2to2(inputs, mask = edge_mask.unsqueeze(-1), nobj = nobj,
