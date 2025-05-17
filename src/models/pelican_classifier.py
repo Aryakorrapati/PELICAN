@@ -304,8 +304,9 @@ class PELICANClassifier(nn.Module):
         elif rank2_particle_scalars is None:
             inputs = rank2_inputs
         else:
-            print("rank2_inputs shape:", rank2_inputs.shape)
-            print("rank2_particle_scalars shape:", rank2_particle_scalars.shape)
+            if rank2_inputs is not None and rank2_inputs.dim() == 3:
+                rank2_inputs = rank2_inputs.unsqueeze(-1)
+                
             inputs = torch.cat([rank2_inputs, rank2_particle_scalars], dim=-1)
         return inputs
     
