@@ -366,7 +366,6 @@ class Net2to2(nn.Module):
     def __init__(self, num_channels, num_channels_m, ops_func=None, activate_agg=False, activate_lin=True,
                  activation='leakyrelu', dropout=True, drop_rate=0.25, batchnorm=None,
                  config='s', average_nobj=49, factorize=False, masked=True, device=torch.device('cpu'), dtype=torch.float):
-        print("Net2to2 initialized with in_dim =", self.in_dim)
         super(Net2to2, self).__init__()
         print("Net2to2 initialized with in_dim =", self.in_dim)
         
