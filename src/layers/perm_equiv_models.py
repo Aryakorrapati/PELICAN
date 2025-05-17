@@ -143,8 +143,6 @@ class Eq1to2(nn.Module):
         Returns: B x N x C
         '''
         d = {'s': 'sum', 'm': 'mean', 'x': 'max', 'n': 'min'}
-        print("Net2to2 expected input dim:", self.in_dim)
-        print("Net2to2 actual input shape:", x.shape)
 
         ops = []
         for i, char in enumerate(self.config):
@@ -222,8 +220,6 @@ class Eq2to1(nn.Module):
         Returns: B x N x C
         '''
         d = {'s': 'sum', 'm': 'mean', 'x': 'max', 'n': 'min'}
-        print("Net2to2 expected input dim:", self.in_dim)
-        print("Net2to2 actual input shape:", x.shape)
 
         ops = []
         for i, char in enumerate(self.config):
@@ -307,8 +303,6 @@ class Eq2to2(nn.Module):
     def forward(self, inputs, mask=None, nobj=None, softmask_ir=None, irc_weight=None):
 
         d = {'s': 'sum', 'm': 'mean', 'x': 'max', 'n': 'min'}
-        print("Net2to2 expected input dim:", self.in_dim)
-        print("Net2to2 actual input shape:", x.shape)
 
         ops=[]
         for i, char in enumerate(self.config):
@@ -398,8 +392,6 @@ class Net2to2(nn.Module):
         x: N x m x m x in_dim
         Returns: N x m x m x out_dim
         '''
-        print("Net2to2 expected input dim:", self.in_dim)
-        print("Net2to2 actual input shape:", x.shape)
         assert (x.shape[-1] == self.in_dim), "Input dimension of Net2to2 doesn't match the dimension of the input tensor"
 
         for agg, msg in zip(self.eq_layers, self.message_layers):
