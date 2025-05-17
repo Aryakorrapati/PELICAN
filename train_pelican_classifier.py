@@ -40,6 +40,11 @@ def main():
     # Initialize arguments
     args = init_argparse()
 
+    print("DEBUG: num_channels_2to2 =", args.num_channels_2to2)
+    print("DEBUG: num_channels_m =", args.num_channels_m)
+    print("DEBUG: num_channels_scalar =", args.num_channels_scalar)
+
+
     # Choose the right performance tracking tools based on the number of classes
     if args.num_classes<=2:
         from src.models.metrics_classifier import metrics, minibatch_metrics, minibatch_metrics_string

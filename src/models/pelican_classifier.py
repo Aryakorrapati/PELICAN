@@ -99,6 +99,8 @@ class PELICANClassifier(nn.Module):
                                           rank1_in_dim = self.rank1_dim, rank2_in_dim=self.rank2_dim, 
                                           mode=mode, device = device, dtype = dtype)
         
+        print("MODEL INIT DEBUG: num_channels_2to2 being passed to Net2to2 is:", num_channels_2to2)
+
         # This is the main part of the network -- a sequence of permutation-equivariant 2->2 blocks
         # Each 2->2 block consists of a component-wise messaging layer that mixes channels, followed by the equivariant aggegration over particle indices
         self.net2to2 = Net2to2(num_channels_2to2 + [num_channels_m_out[0]], num_channels_m, 
@@ -157,9 +159,6 @@ class PELICANClassifier(nn.Module):
                                                         rank1_mask=particle_mask.unsqueeze(-1) ,rank2_mask=edge_mask.unsqueeze(-1))
 
         inputs = self.apply_eq1to2(particle_scalars, rank1_inputs, rank2_inputs, edge_mask, nobj, irc_weight)
-
-        print("inputs shape before net2to2:", inputs.shape)
-        print("net2to2 expected input dim:", self.net2to2.in_dim)
 
         # Apply the sequence of PELICAN equivariant 2->2 blocks with the IRC weighting.
         act1 = self.net2to2(inputs, mask = edge_mask.unsqueeze(-1), nobj = nobj,
