@@ -69,6 +69,9 @@ class Eq2to0(nn.Module):
         '''
         d = {'s': 'sum', 'm': 'mean', 'x': 'max', 'n': 'min'}
 
+        print("Net2to2 expected input dim:", self.in_dim)
+        print("Net2to2 actual input shape:", x.shape)
+
         ops = []
         for i, char in enumerate(self.config):
             if char in ['s', 'm', 'x', 'n']:
