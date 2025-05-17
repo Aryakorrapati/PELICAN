@@ -250,6 +250,13 @@ class InputEncoder(nn.Module):
     def __init__(self, rank1_dim_multiplier, rank2_dim_multiplier, rank1_in_dim = 0, rank2_in_dim = 1, mode = 'log', device=torch.device('cpu'), dtype=torch.float):
         super().__init__()
 
+        self.rank2_embed_mlp = nn.Sequential(
+            nn.Linear(1, 32),   
+            nn.ReLU(),
+            nn.Dropout(0.2),    # helps prevent overfitting
+            nn.Linear(8, 1)
+        )
+
         self.rank1_in_dim = rank1_in_dim
         self.rank2_in_dim = rank2_in_dim
         self.rank1_dim_multiplier = rank1_dim_multiplier if rank1_in_dim else 0
@@ -274,13 +281,14 @@ class InputEncoder(nn.Module):
         else:
             rank1_out = None
         if self.rank2_in_dim > 0: 
-            s = dot_products.shape[:-1]
-            l = len(s)
-            # rank2_alphas = self.rank2_alphas.view([1,]*l+[self.rank2_in_dim, self.rank2_dim_multiplier])
-            rank2_alphas = self.rank2_alphas.view([1,]*l+[self.rank2_dim_multiplier])
-            rank2_out = fn(dot_products, rank2_alphas, self.mode)
+            dot_shape = dot_products.shape
+            # Reshape for MLP: expects (N, 1)
+            mlp_in = dot_products.reshape(-1, 1)
+            mlp_out = self.rank2_embed_mlp(mlp_in)
+            rank2_out = mlp_out.view(dot_shape)
         else:
             rank2_out = None
+
 
         if rank1_mask is not None and self.rank1_in_dim > 0:
             rank1_out = torch.where(rank1_mask, rank1_out, self.zero)
