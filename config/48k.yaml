@@ -25,5 +25,3 @@ num_channels_out:
   - 60
 
 aug_alpha: 0.5
-
-num_epoch: 50
