@@ -100,11 +100,9 @@ class PELICANClassifier(nn.Module):
                                           rank1_in_dim = self.rank1_dim, rank2_in_dim=self.rank2_dim, 
                                           mode=mode, device = device, dtype = dtype)
         
-        self.input_proj = torch.nn.Linear(
-            in_features=num_channels_2to2[0],  # input channels (11 for 48k.yaml, 78 for 208k.yaml, 192 for mega.yaml, etc)
-            out_features=num_channels_m[0][0]  # output channels (should match Net2to2.in_dim)
-        )
+        self.input_proj = torch.nn.Linear(11, self.num_channels_2to2[0])
 
+        
         # This is the main part of the network -- a sequence of permutation-equivariant 2->2 blocks
         # Each 2->2 block consists of a component-wise messaging layer that mixes channels, followed by the equivariant aggegration over particle indices
         self.net2to2 = Net2to2(num_channels_2to2 + [num_channels_m_out[0]], num_channels_m, 
