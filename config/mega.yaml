@@ -3,24 +3,23 @@ num_channels_scalar: 10
 
 num_channels_m:
   - 
-    - 60
+    - 256
   - 
-    - 60
+    - 256
   - 
-    - 60
+    - 256
   - 
-    - 60
+    - 256
   - 
-    - 60
+    - 256
 num_channels_2to2: 
-  - 35
-  - 35
-  - 35
-  - 35
-  - 35
+  - 192
+  - 192
+  - 192
+  - 192
+  - 192
 num_channels_m_out:
-  - 60
-  - 35
+  - 256
+  - 192
 num_channels_out: 
-  - 60
-
+  - 256
