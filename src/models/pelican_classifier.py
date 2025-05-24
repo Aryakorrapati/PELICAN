@@ -159,6 +159,8 @@ class PELICANClassifier(nn.Module):
                                                         rank1_mask=particle_mask.unsqueeze(-1) ,rank2_mask=edge_mask.unsqueeze(-1))
 
         inputs = self.apply_eq1to2(particle_scalars, rank1_inputs, rank2_inputs, edge_mask, nobj, irc_weight)
+        print("inputs.shape:", inputs.shape, "Net2to2.in_dim:", self.net2to2.in_dim)
+
 
         if inputs.shape[-1] != self.net2to2.in_dim:
             inputs = self.input_proj(inputs)
