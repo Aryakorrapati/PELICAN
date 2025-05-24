@@ -7,6 +7,7 @@ from .lorentz_metric import CATree, SDMultiplicity
 from ..layers import BasicMLP, Net2to2, Eq1to2, Eq2to0, MessageNet, InputEncoder, GInvariants, MyLinear
 from ..trainer import init_weights
 logger = logging.getLogger(__name__)
+import torch.nn.functional as F
 
 class PELICANClassifier(nn.Module):
     """
@@ -162,11 +163,20 @@ class PELICANClassifier(nn.Module):
                                                         rank1_mask=particle_mask.unsqueeze(-1) ,rank2_mask=edge_mask.unsqueeze(-1))
 
         inputs = self.apply_eq1to2(particle_scalars, rank1_inputs, rank2_inputs, edge_mask, nobj, irc_weight)
-        print("inputs.shape:", inputs.shape, "Net2to2.in_dim:", self.net2to2.in_dim)
 
 
         if inputs.shape[-1] != self.net2to2.in_dim:
-            inputs = self.input_proj(inputs)
+            # Save shape for reshaping after projection
+            input_shape = inputs.shape
+            last_dim = input_shape[-1]
+            out_dim = self.net2to2.in_dim
+            # Flatten all except the last dim
+            inputs_reshaped = inputs.view(-1, last_dim)
+            # Project
+            projected = self.input_proj(inputs_reshaped)
+            # Reshape back
+            new_shape = input_shape[:-1] + (out_dim,)
+            inputs = projected.view(*new_shape)
 
         # Apply the sequence of PELICAN equivariant 2->2 blocks with the IRC weighting.
         act1 = self.net2to2(inputs, mask = edge_mask.unsqueeze(-1), nobj = nobj,
