@@ -100,9 +100,9 @@ class PELICANClassifier(nn.Module):
                                           rank1_in_dim = self.rank1_dim, rank2_in_dim=self.rank2_dim, 
                                           mode=mode, device = device, dtype = dtype)
         
-        self.input_proj = torch.nn.Linear(11, self.num_channels_2to2[0])
+        self.input_proj = None 
 
-        
+
         # This is the main part of the network -- a sequence of permutation-equivariant 2->2 blocks
         # Each 2->2 block consists of a component-wise messaging layer that mixes channels, followed by the equivariant aggegration over particle indices
         self.net2to2 = Net2to2(num_channels_2to2 + [num_channels_m_out[0]], num_channels_m, 
@@ -164,17 +164,21 @@ class PELICANClassifier(nn.Module):
 
 
         if inputs.shape[-1] != self.net2to2.in_dim:
-            # Save shape for reshaping after projection
-            input_shape = inputs.shape
-            last_dim = input_shape[-1]
-            out_dim = self.net2to2.in_dim
-            # Flatten all except the last dim
-            inputs_reshaped = inputs.view(-1, last_dim)
-            # Project
-            projected = self.input_proj(inputs_reshaped)
-            # Reshape back
-            new_shape = input_shape[:-1] + (out_dim,)
-            inputs = projected.view(*new_shape)
+                input_shape = inputs.shape
+                last_dim = input_shape[-1]
+                out_dim = self.net2to2.in_dim
+
+                # Instantiate input_proj if not already done or shape changed
+                if (self.input_proj is None) or (self.input_proj.in_features != last_dim) or (self.input_proj.out_features != out_dim):
+                    self.input_proj = torch.nn.Linear(last_dim, out_dim).to(inputs.device)
+                    # Optionally, initialize weights similarly to your other layers
+
+                # Flatten all but last dimension, project, and reshape back
+                flat_inputs = inputs.view(-1, last_dim)
+                projected = self.input_proj(flat_inputs)
+                new_shape = input_shape[:-1] + (out_dim,)
+                inputs = projected.view(*new_shape)
+
 
         # Apply the sequence of PELICAN equivariant 2->2 blocks with the IRC weighting.
         act1 = self.net2to2(inputs, mask = edge_mask.unsqueeze(-1), nobj = nobj,
