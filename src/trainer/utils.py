@@ -251,7 +251,7 @@ def init_scheduler(args, optimizer):
             max_lr=max_lr,
             epochs=args.num_epoch,
             steps_per_epoch=minibatch_per_epoch,
-            pct_start=0.25,  # Optional: you can make this configurable too
+            pct_start=0.20,  # Optional: you can make this configurable too
             anneal_strategy='cos',  # Consistent with your other decay styles
             div_factor=25.0  # Optional: set how far to start below max_lr
         )
