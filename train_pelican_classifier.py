@@ -43,45 +43,44 @@ torch.set_printoptions(linewidth=1000, threshold=100000, sci_mode=False)
 
 import matplotlib.pyplot as plt
 
-def lr_finder(model, optimizer, criterion, dataloader, device, 
-              start_lr=1e-7, end_lr=1, num_iter=100):
-    model.train()
-    lrs = numpy.logspace(numpy.log10(start_lr), numpy.log10(end_lr), num_iter)
-    losses = []
-    best_loss = float('inf')
-    dataloader_iter = iter(dataloader)
+#def lr_finder(model, optimizer, criterion, dataloader, device, 
+              #start_lr=1e-7, end_lr=1, num_iter=100):
+    #model.train()
+    #lrs = numpy.logspace(numpy.log10(start_lr), numpy.log10(end_lr), num_iter)
+    #losses = []
+    #best_loss = float('inf')
+    #dataloader_iter = iter(dataloader)
 
-    for i, lr in enumerate(lrs):
-        for param_group in optimizer.param_groups:
-            param_group['lr'] = lr
-        try:
-            batch = next(dataloader_iter)
-        except StopIteration:
-            dataloader_iter = iter(dataloader)
-            batch = next(dataloader_iter)
+    #for i, lr in enumerate(lrs):
+        #for param_group in optimizer.param_groups:
+            #param_group['lr'] = lr
+        #try:
+            #batch = next(dataloader_iter)
+        #except StopIteration:
+            #dataloader_iter = iter(dataloader)
+            #batch = next(dataloader_iter)
         
         # You may need to adapt this next line to match your data
-        data, targets = batch, batch['is_signal'].to(device)  # Change 'is_signal' to your label name
+        #data, targets = batch, batch['is_signal'].to(device)  # Change 'is_signal' to your label name
 
-        optimizer.zero_grad()
-        outputs = model(data)['predict']
-        loss = criterion(outputs, targets)
-        loss.backward()
-        optimizer.step()
-        losses.append(loss.item())
+        #optimizer.zero_grad()
+        #outputs = model(data)['predict']
+        #loss = criterion(outputs, targets)
+        #loss.backward()
+        #optimizer.step()
+        #losses.append(loss.item())
 
-        if loss.item() < best_loss:
-            best_loss = loss.item()
-        if loss.item() > 10 * best_loss:
-            break
+        #if loss.item() < best_loss:
+            #best_loss = loss.item()
+        #if loss.item() > 10 * best_loss:
+            #break
     
-    plt.plot(lrs[:len(losses)], losses)
-    plt.xscale('log')
-    plt.xlabel('Learning Rate')
-    plt.ylabel('Loss')
-    plt.title('Learning Rate Finder')
-    plt.savefig("lr_finder_plot.png")
-    plt.show()
+    #plt.plot(lrs[:len(losses)], losses)
+    #plt.xscale('log')
+    #plt.ylabel('Loss')
+    #plt.title('Learning Rate Finder')
+    #plt.savefig("lr_finder_plot.png")
+    #plt.show()
 
 
 
@@ -227,21 +226,21 @@ def main():
         if args.reproducible:
             os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
 
-        print("Running LR Finder (this will plot LR vs Loss)...")
-        lr_finder(
-            model,
-            optimizer,
-            loss_fn,
-            dataloaders['train'],   # or use a subset DataLoader for speed
-            device,
-            start_lr=0.001,
-            end_lr=0.01,
-            num_iter=100
-        )
-        sys.exit(0)  # Uncomment to exit after LR finder (so you don't accidentally start training)
+        #print("Running LR Finder (this will plot LR vs Loss)...")
+        #lr_finder(
+            #model,
+            #optimizer,
+            #loss_fn,
+            #dataloaders['train'],   # or use a subset DataLoader for speed
+            #device,
+            #start_lr=0.001,
+            #end_lr=0.01,
+            #num_iter=100
+        #)
+        #sys.exit(0)  # Uncomment to exit after LR finder (so you don't accidentally start training)
 
         # Train model.
-        #trainer.train()
+        trainer.train()
 
     # Test predictions on best model and also last checkpointed model.
     # If distributed==False, only one GPU will do this during DDP sessions 

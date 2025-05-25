@@ -53,7 +53,7 @@ class Trainer:
     def _wrap_scheduler(self, scheduler):
         return OneCycleLR(
         self.optimizer, 
-        max_lr=0.001,  # Adjust max learning rate
+        max_lr=0.003,  # Adjust max learning rate
         steps_per_epoch=len(self.dataloaders['train']), 
         epochs=self.args.num_epoch,
         pct_start=0.20,  # 20% of training is warmup
