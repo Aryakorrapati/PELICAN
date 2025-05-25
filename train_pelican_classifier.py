@@ -80,6 +80,7 @@ def lr_finder(model, optimizer, criterion, dataloader, device,
     plt.xlabel('Learning Rate')
     plt.ylabel('Loss')
     plt.title('Learning Rate Finder')
+    plt.savefig("lr_finder_plot.png")
     plt.show()
 
 
