@@ -234,8 +234,8 @@ def main():
             loss_fn,
             dataloaders['train'],   # or use a subset DataLoader for speed
             device,
-            start_lr=0.0001,
-            end_lr=0.1,
+            start_lr=0.001,
+            end_lr=0.01,
             num_iter=100
         )
         sys.exit(0)  # Uncomment to exit after LR finder (so you don't accidentally start training)
