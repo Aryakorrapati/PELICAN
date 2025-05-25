@@ -57,7 +57,7 @@ class Trainer:
         steps_per_epoch=len(self.dataloaders['train']), 
         epochs=self.args.num_epoch,
         pct_start=0.20,  # 20% of training is warmup
-        anneal_strategy='sin',  # Cosine decay
+        anneal_strategy='cos',  # Cosine decay
         final_div_factor=100  # Reduce learning rate at the end
     )
 
