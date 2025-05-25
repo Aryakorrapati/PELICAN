@@ -44,7 +44,7 @@ torch.set_printoptions(linewidth=1000, threshold=100000, sci_mode=False)
 import matplotlib.pyplot as plt
 
 def lr_finder(model, optimizer, criterion, dataloader, device, 
-              start_lr=0.005, end_lr=0.01, num_iter=300):
+              start_lr=1e-7, end_lr=1, num_iter=100):
     model.train()
     lrs = numpy.logspace(numpy.log10(start_lr), numpy.log10(end_lr), num_iter)
     losses = []
@@ -234,8 +234,8 @@ def main():
             loss_fn,
             dataloaders['train'],   # or use a subset DataLoader for speed
             device,
-            start_lr=1e-6,
-            end_lr=1,
+            start_lr=0.0005,
+            end_lr=0.01,
             num_iter=100
         )
         sys.exit(0)  # Uncomment to exit after LR finder (so you don't accidentally start training)
