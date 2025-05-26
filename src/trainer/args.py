@@ -18,6 +18,8 @@ def setup_argparse():
     #Condor Max_lr
     parser.add_argument('--max_lr', type=float, default=None, help='Override max learning rate (OneCycleLR)')
     parser.add_argument('--mix_mode', type=str, default='mixup', help='Mixup mode (only "mixup" supported)')
+    parser.add_argument('--bestaccfile', type=str, default='./model/classifier_bestacc.pt')
+
 
     parser.add_argument('--host', default='worker1172')
     parser.add_argument('--password', default='asoetuh')

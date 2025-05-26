@@ -49,6 +49,9 @@ class Trainer:
         self.device_id = device_id
         self.device = device
         self.dtype = dtype
+        self.best_val_acc = -float('inf')
+        self.best_acc_epoch = 0
+        self.best_acc_metrics = None
 
     def _wrap_scheduler(self, scheduler):
         return OneCycleLR(
@@ -83,6 +86,24 @@ class Trainer:
             self.best_metrics = save_dict['best_metrics'] = valid_metrics
             logger.info('Lowest loss achieved! Saving best model to file: {}'.format(self.args.bestfile))
             torch.save(save_dict, self.args.bestfile)
+
+
+        if valid_metrics and 'accuracy' in valid_metrics and valid_metrics['accuracy'] > self.best_val_acc:
+            self.best_val_acc = valid_metrics['accuracy']
+            self.best_acc_epoch = self.epoch
+            self.best_acc_metrics = valid_metrics.copy()
+            logger.info(f'New best accuracy: {self.best_val_acc:.4f} at epoch {self.best_acc_epoch}, saving to {self.args.bestaccfile}')
+            torch.save({
+                'args': self.args,
+                'model_state': self.model.state_dict(),
+                'optimizer_state': self.optimizer.state_dict(),
+                'scheduler_state': self.scheduler.state_dict(),
+                'epoch': self.epoch,
+                'minibatch': self.minibatch,
+                'minibatch_metrics': self.minibatch_metrics,
+                'best_acc_epoch': self.best_acc_epoch,
+                'best_acc_metrics': self.best_acc_metrics,
+            }, self.args.bestaccfile)
 
 
     def load_checkpoint(self):
@@ -120,6 +141,18 @@ class Trainer:
         del checkpoint
 
         logger.info(f'Loaded checkpoint at epoch {self.epoch}.\nBest metrics from checkpoint are at epoch {self.best_epoch}:\n{self.best_metrics}')
+
+    def save_best_acc_metrics_csv(self):
+        """Save best accuracy metrics to classifier.best.accuracy.csv"""
+        if self.best_acc_metrics is not None:
+            filename = os.path.join(self.args.workdir, self.args.logdir, "classifier.best.accuracy.csv")
+            header_written = os.path.exists(filename)
+            with open(filename, 'a' if header_written else 'w') as f:
+                if not header_written:
+                    f.write("epoch," + ",".join(self.best_acc_metrics.keys()) + "\n")
+                f.write(f"{self.best_acc_epoch}," + ",".join(str(v) for v in self.best_acc_metrics.values()) + "\n")
+            logger.info(f"Best accuracy metrics saved to {filename}")
+
 
     def evaluate(self, splits=['train', 'valid', 'test'], distributed=False, best=True, final=True, ir_data=None, c_data=None, expand_data=None):
         """
@@ -176,6 +209,22 @@ class Trainer:
                 if self.device_id <= 0:
                     self.log_predict(predict, targets, split, description='Best', repeat=[best_metrics, logstring])
         logger.info('Inference phase complete!\n')
+
+        # Evaluate best accuracy model
+        if hasattr(self.args, "bestaccfile") and os.path.exists(self.args.bestaccfile):
+            checkpoint = torch.load(self.args.bestaccfile, map_location=self.device)
+            best_acc_epoch = checkpoint.get('best_acc_epoch', -1)
+            self.model.load_state_dict(checkpoint['model_state'])
+            logger.info(f"Getting predictions for best-accuracy model {self.args.bestaccfile} (epoch {best_acc_epoch}, best accuracy metrics were {checkpoint.get('best_acc_metrics', {})}).")
+            for split in splits:
+                predict, targets = self.predict(split, distributed=distributed, ir_data=ir_data, c_data=c_data, expand_data=expand_data)
+                if self.device_id <= 0:
+                    best_acc_metrics, logstring = self.log_predict(predict, targets, split, description='BestAcc')
+                synchronize()
+            # After best-accuracy evaluation:
+            self.save_best_acc_metrics_csv()
+
+
 
     def _warm_restart(self, epoch):
         restart_epochs = self.restart_epochs
