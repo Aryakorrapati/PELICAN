@@ -183,7 +183,7 @@ if __name__ == '__main__':
     if args.storage == 'remote':
         storage=optuna.storages.RDBStorage(url=f'postgresql://{os.environ["USER"]}:{args.password}@{args.host}:{args.port}', heartbeat_interval=100)  # For running on nodes with a distributed file system
     elif args.storage == 'local':
-        storage = 'sqlite:///' + args.study_name + '.db'
+        storage = f"sqlite:///{args.study_name}.db"
 
     direction = 'maximize'
     # directions=['minimize', 'maximize', 'maximize']
@@ -202,7 +202,7 @@ if __name__ == '__main__':
 
     # os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
-    study = optuna.create_study(study_name=args.study_name, storage=storage, direction=direction, load_if_exists=True,
+    study = optuna.create_study(study_name=args.study_name, storage=storage, direction=direction, load_if_exist=False,
                                 pruner=pruner, sampler=sampler)
 
     # init_params =  {
