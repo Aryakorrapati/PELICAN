@@ -53,13 +53,13 @@ class Trainer:
         self.best_acc_epoch = 0
         self.best_acc_metrics = None
 
-    def _wrap_scheduler(self, scheduler):
+    def _wrap_scheduler(self):
         return OneCycleLR(
         self.optimizer, 
-        max_lr=0.003,  # Adjust max learning rate
+        max_lr=self.args.lr_init,  # Adjust max learning rate
         steps_per_epoch=len(self.dataloaders['train']), 
         epochs=self.args.num_epoch,
-        pct_start=0.20,  # 20% of training is warmup
+        pct_start=self.args.pct_start,  # 20% of training is warmup
         anneal_strategy='cos',  # Cosine decay
         final_div_factor=100  # Reduce learning rate at the end
     )

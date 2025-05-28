@@ -32,7 +32,11 @@ def suggest_params(args, trial):
     # args.layernorm = trial.suggest_categorical("layernorm", [True, False])
     # args.lr_decay_type = trial.suggest_categorical("lr_decay_type", ['exp', 'cos'])
 
-    # args.batch_size = trial.suggest_categorical("batch_size", [16, 32])
+    args.batch_size = trial.suggest_categorical("batch_size", [16, 32, 64, 128, 256])
+    args.lr_init = trial.suggest_loguniform("lr_init", 1e-5, 1e-2)        # or whatever range you want
+    args.pct_start = trial.suggest_float("pct_start", 0.05, 0.5)          # for OneCycleLR, 5% to 50% is typical
+
+
     args.double = trial.suggest_categorical("double", [False, True])
     args.factorize = trial.suggest_categorical("factorize", [False, True])
     args.nobj = trial.suggest_int("nobj", 50, 90)
