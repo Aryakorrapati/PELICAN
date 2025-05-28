@@ -21,6 +21,15 @@ def setup_argparse():
     parser.add_argument('--bestaccfile', type=str, default='./model/classifier_bestacc.pt')
 
 
+    # Add any missing model arguments here (copy-paste as needed):
+
+    parser.add_argument('--add-beams', action=argparse.BooleanOptionalAction, default=False,
+        help='Whether to add beams (default: False)')
+
+    parser.add_argument('--sig', action=argparse.BooleanOptionalAction, default=False,
+        help='Whether to use sigmoid activation (default: False)')
+
+
     parser.add_argument('--host', default='worker1172')
     parser.add_argument('--password', default='asoetuh')
     parser.add_argument('--port', default='35719')
