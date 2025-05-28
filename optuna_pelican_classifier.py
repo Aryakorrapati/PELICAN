@@ -109,7 +109,7 @@ def define_model(trial):
                       activate_agg=args.activate_agg, activate_lin=args.activate_lin,
                       activation=args.activation, add_beams=args.add_beams, sig=args.sig, config=args.config, config_out=args.config_out, factorize=args.factorize, masked=args.masked,
                       activate_agg_out=args.activate_agg_out, activate_lin_out=args.activate_lin_out, mlp_out=args.mlp_out,
-                      scale=args.scale, ir_safe=args.ir_safe, dropout = args.dropout, drop_rate=args.drop_rate, batchnorm=args.batchnorm,
+                      scale=args.scale, ir_safe=args.irc_safe, dropout = args.dropout, drop_rate=args.drop_rate, batchnorm=args.batchnorm,
                       device=device, dtype=dtype)
 
     model.to(device)
