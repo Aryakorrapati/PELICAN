@@ -202,7 +202,7 @@ if __name__ == '__main__':
 
     # os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
 
-    study = optuna.create_study(study_name=args.study_name, storage=storage, direction=direction, load_if_exist=False,
+    study = optuna.create_study(study_name=args.study_name, storage=storage, direction=direction, load_if_exists=False,
                                 pruner=pruner, sampler=sampler)
 
     # init_params =  {
