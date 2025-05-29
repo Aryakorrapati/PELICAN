@@ -163,7 +163,7 @@ def define_dataloader(args):
 
 
     # Construct PyTorch dataloaders from datasets
-    collate = lambda data: collate_fn(data, scale=args.scale, nobj=args.nobj, add_beams=args.add_beams, beam_mass=args.beam_mass)
+    collate = lambda data: collate_fn(data, scale=args.scale, nobj=args.nobj, beam_mass=getattr(args, "beam_mass", 1))
     dataloaders = {split: DataLoader(dataset,
                                      batch_size=args.batch_size,
                                      shuffle=args.shuffle if (split == 'train') else False,
