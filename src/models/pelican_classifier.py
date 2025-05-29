@@ -181,10 +181,16 @@ class PELICANClassifier(nn.Module):
                 inputs = projected.view(*new_shape)
 
 
-        edge_mask = particle_mask.unsqueeze(1) * particle_mask.unsqueeze(2)  # [batch, nobj, nobj]
-        edge_mask = edge_mask.unsqueeze(-1)                                  # [batch, nobj, nobj, 1]
-        act1 = self.net2to2(inputs, mask = edge_mask, nobj = nobj,
-                            irc_weight = irc_weight if self.irc_safe else None)
+
+        # For Net2to2: check shape of inputs
+        if inputs.dim() == 3 and inputs.shape[1] == edge_mask.shape[1]:  # [batch, nobj, features]
+            # Only need a per-particle mask!
+            mask_for_net2to2 = particle_mask.unsqueeze(-1)  # [batch, nobj, 1]
+        else:
+            mask_for_net2to2 = edge_mask  # [batch, nobj, nobj, 1]
+        print("inputs.shape:", inputs.shape)
+        print("mask_for_net2to2.shape:", mask_for_net2to2.shape)
+        act1 = self.net2to2(inputs, mask=mask_for_net2to2, nobj=nobj, irc_weight=irc_weight if self.irc_safe else None)
 
         # The last equivariant 2->0 block is constructed here by hand: message layer, dropout, and Eq2to0.
         act2 = self.msg_2to0(act1, mask=edge_mask.unsqueeze(-1))
