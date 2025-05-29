@@ -5,6 +5,8 @@ from .masked_batchnorm import MaskedBatchNorm1d, MaskedBatchNorm2d
 from .masked_instancenorm import MaskedInstanceNorm2d, MaskedInstanceNorm3d
 # from ..models.lorentz_metric import dot4, dot3, dot2, dot12, dot11
 
+import traceback
+
 
 
 class MyLinear(nn.Module):
@@ -215,6 +217,7 @@ class MessageNet(nn.Module):
             print("x.shape:", x.shape)
             print("mask.shape:", mask.shape)
             print("self.zero.shape:", self.zero.shape)
+            traceback.print_stack()
 
             x = torch.where(mask, x, self.zero)
 
