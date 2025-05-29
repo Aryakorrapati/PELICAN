@@ -90,6 +90,13 @@ def define_model(trial):
 
     args.datadir = 'data/sample_data/run12'
 
+    if not hasattr(args, 'add_beams'):
+        args.add_beams = False  # Or whatever default you want
+
+    if not hasattr(args, 'beam_mass'):
+        args.beam_mass = 1.0    # Or your appropriate default
+
+
     # Initialize file paths
     args = init_file_paths(args)
 
