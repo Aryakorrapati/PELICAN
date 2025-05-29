@@ -379,6 +379,13 @@ class Net2to2(nn.Module):
 
         print("Net2to2 initialized with in_dim =", self.in_dim)
 
+        num_layers = len(num_channels) - 1
+        if len(num_channels_m) < num_layers:
+            raise ValueError(f"num_channels_m is too short: len(num_channels_m)={len(num_channels_m)}, expected at least {num_layers}")
+        for i in range(num_layers):
+            if len(num_channels_m[i]) == 0:
+                raise ValueError(f"num_channels_m[{i}] is empty!")
+
         eq_out_dims = [num_channels_m[i+1][0] if len(num_channels_m[i+1]) > 0 else num_channels[i+1] for i in range(num_layers-1)] + [num_channels[-1]]
 
         self.dropout = dropout
