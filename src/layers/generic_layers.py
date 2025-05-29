@@ -230,9 +230,11 @@ class MessageNet(nn.Module):
                 if len(x.shape)==3:
                     if self.masked:
                         if mask is not None and mask.dim() == 3:
-                                batch, nobj, one = mask.shape
-                                mask = mask.unsqueeze(2)  # [batch, nobj, 1, 1]
-                                mask = mask.expand(batch, nobj, nobj, one)  # [batch, nobj, nobj, 1]
+                            batch, nobj, one = mask.shape
+                            mask = mask.unsqueeze(2)  # [batch, nobj, 1, 1]
+                            mask = mask.expand(batch, nobj, nobj, one)  # [batch, nobj, nobj, 1]
+                        print(f"x.unsqueeze(1).shape: {x.unsqueeze(1).shape}, mask.shape: {mask.shape}")
+
                         x = self.normlayer(x.unsqueeze(1), mask).squeeze(1)
                     else:
                         x = self.normlayer(x.unsqueeze(-1).permute(0,2,1,3)).permute(0,2,1,3).squeeze(-1)
