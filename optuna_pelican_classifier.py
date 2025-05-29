@@ -47,12 +47,12 @@ def suggest_params(args, trial):
     args.config_out = trial.suggest_categorical("config_out", ["s", "m", "S", "M"]) # , "sM", "Sm"]) #, "S", "m", "M", "sS", "mM", "sM", "Sm", "SM"]) #, "mx", "Mx", "sSm", "sSM", "smM", "sMmM", "mxn", "mXN", "mxMX", "sXN", "smxn"])
     
     n_layers1 = trial.suggest_int("n_layers1", 2, 6)
+    num_layers = n_layers1 + 1  # Because num_channels = len(num_channels_2to2) + 1
 
-    # n_layersm = trial.suggest_int("n_layersm", 1, 2)
-    # args.num_channels_m = [[trial.suggest_int('n_channelsm['+str(k)+']', 10, 30) for k in range(n_layersm)]] * n_layers1
-    n_layersm = [trial.suggest_int("n_layersm", 1, 2) for i in range(n_layers1)]
-    args.num_channels_m = [[trial.suggest_int('n_channelsm['+str(i)+', '+str(k)+']', 10, 50) for k in range(n_layersm[i])] for i in range(n_layers1)]
-
+    n_layersm = [trial.suggest_int("n_layersm", 1, 2) for i in range(num_layers)]  # Note range(num_layers) instead of n_layers1!
+    args.num_channels_m = [[trial.suggest_int(f'n_channelsm[{i}, {k}]', 10, 50) for k in range(n_layersm[i])] for i in range(num_layers)]
+    
+    
     n_layersm_out = trial.suggest_int("n_layersm2", 1, 2)
     args.num_channels_m_out = [trial.suggest_int('n_channelsm_out['+str(k)+']', 10, 50) for k in range(n_layersm_out)]
 
