@@ -49,6 +49,7 @@ class PELICANClassifier(nn.Module):
         self.factorize = factorize
         self.masked = masked
         self.dataset = dataset
+        
 
         if dropout:
             self.dropout_layer = nn.Dropout(drop_rate)
