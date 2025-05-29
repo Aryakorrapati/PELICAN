@@ -351,6 +351,10 @@ class Eq2to2(nn.Module):
 
 
         if mask is not None:
+            if mask.dim() == 3:  # [batch, nobj, 1]
+                mask = mask.unsqueeze(2).expand(-1, -1, output.shape[2], -1)
+            if mask.shape[-1] == 1 and output.shape[-1] != 1:
+                mask = mask.expand(-1, -1, -1, output.shape[-1])
             output = output * mask
         return output
 
