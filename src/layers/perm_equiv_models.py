@@ -414,7 +414,15 @@ class Net2to2(nn.Module):
 
         for agg, msg in zip(self.eq_layers, self.message_layers):
             x = msg(x, mask)
-            if self.dropout: x = self.dropout_layer(x.permute(0,3,1,2)).permute(0,2,3,1)
+            if self.dropout:
+                if x.dim() == 4:
+                    # [batch, nobj, nobj, features] style
+                    x = self.dropout_layer(x.permute(0, 3, 1, 2)).permute(0, 2, 3, 1)
+                elif x.dim() == 3:
+                    # [batch, nobj, features] style
+                    x = self.dropout_layer(x.permute(0, 2, 1)).permute(0, 2, 1)
+                else:
+                    raise RuntimeError(f"Unexpected tensor shape for dropout: {x.shape}")
             x = agg(x, mask, nobj, irc_weight=irc_weight)
             # if self.dropout: x = self.dropout_layer(x.permute(0,3,1,2)).permute(0,2,3,1)
         return x
