@@ -168,7 +168,7 @@ def objective(trial):
 
     # Initialize the scheduler and optimizer
     optimizer = init_optimizer(args, model)
-    scheduler, restart_epochs, summarize = init_scheduler(args, optimizer)
+    scheduler, restart_epochs = init_scheduler(args, optimizer)
 
     # Define a loss function.
     # loss_fn = torch.nn.functional.cross_entropy
