@@ -47,6 +47,10 @@ class MaskedBatchNorm1d(nn.BatchNorm1d):
         self.zero = torch.tensor(0, device=device, dtype=dtype)
 
     def forward(self, inp, mask):
+        print("MaskedBatchNorm call:")
+        print("inp.shape:", inp.shape)
+        print("mask.shape:", mask.shape)
+
         self._check_input_dim(inp)
         
         # We transform the mask into a sort of P(inp) with equal probabilities
@@ -122,6 +126,9 @@ class MaskedBatchNorm2d(nn.BatchNorm2d):
         self.zero = torch.tensor(0, device=device, dtype=dtype)
 
     def forward(self, inp, mask):
+        print("MaskedBatchNorm call:")
+        print("inp.shape:", inp.shape)
+        print("mask.shape:", mask.shape)
         self._check_input_dim(inp)
         
         # We transform the mask into a sort of P(inp) with equal probabilities
@@ -196,6 +203,9 @@ class MaskedBatchNorm3d(nn.BatchNorm3d):
         self.zero = torch.tensor(0, device=device, dtype=dtype)
 
     def forward(self, inp, mask):
+        print("MaskedBatchNorm call:")
+        print("inp.shape:", inp.shape)
+        print("mask.shape:", mask.shape)
         self._check_input_dim(inp)
         
         # We transform the mask into a sort of P(inp) with equal probabilities
