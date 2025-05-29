@@ -88,6 +88,8 @@ def define_model(trial):
     # Initialize arguments
     args = init_argparse()
 
+    args.datadir = 'data/sample_data/run12'
+
     # Initialize file paths
     args = init_file_paths(args)
 
