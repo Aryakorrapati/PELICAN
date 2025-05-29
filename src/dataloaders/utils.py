@@ -31,6 +31,10 @@ def initialize_datasets(args, datadir='../../data/sample_data', num_pts=None, te
                 datafiles[split].append(filename)
                 logger.info(filename)
 
+    print("Globbing for:", datadir + '/*.h5')
+    print("Glob found files:", files)
+
+
     # if a testfile is explicitly provided, that will override any test sets found in datadir
     if testfile != '': 
         datafiles['test']=[testfile]
