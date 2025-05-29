@@ -141,6 +141,9 @@ def define_dataloader(args):
     # Initialize dataloder
     args, datasets = initialize_datasets(args, args.datadir, num_pts=None)
 
+    print("args.datadir:", args.datadir)
+
+
     print("initialize_datasets keys:", datasets.keys())
     print("initialize_datasets train files:", datasets.get('train', 'None'))
 
