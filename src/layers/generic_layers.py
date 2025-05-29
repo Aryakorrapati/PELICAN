@@ -219,7 +219,11 @@ class MessageNet(nn.Module):
             print("self.zero.shape:", self.zero.shape)
             traceback.print_stack()
 
-            x = torch.where(mask, x, self.zero)
+            if mask.dim() == 3:
+                mask = mask.unsqueeze(2)
+                mask = mask.expand(-1, -1, x.shape[2], -1)
+            if mask.shape[-1] == 1 and x.shape[-1] != 1:
+                mask = mask.expand(-1, -1, -1, x.shape[-1])
 
         if self.batchnorm: 
             if self.batchnorm.startswith('b') or self.batchnorm.startswith('i'):
