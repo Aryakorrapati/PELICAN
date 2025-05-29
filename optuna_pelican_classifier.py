@@ -183,7 +183,7 @@ if __name__ == '__main__':
     if args.storage == 'remote':
         storage=optuna.storages.RDBStorage(url=f'postgresql://{os.environ["USER"]}:{args.password}@{args.host}:{args.port}', heartbeat_interval=100)  # For running on nodes with a distributed file system
     elif args.storage == 'local':
-        storage = f"sqlite:///{args.study_name}.db"
+        storage = "sqlite:////afs/cern.ch/user/a/akorrapa/test_study.db"
 
     direction = 'maximize'
     # directions=['minimize', 'maximize', 'maximize']
