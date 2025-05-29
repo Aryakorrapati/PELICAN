@@ -178,6 +178,8 @@ def objective(trial):
     if args.test:
         tests(model, dataloaders['train'], args, tests=['permutation','batch','irc'])
 
+    summarize = False
+
     # Instantiate the training class
     trainer = Trainer(args, dataloaders, model, loss_fn, metrics, minibatch_metrics, minibatch_metrics_string, optimizer, scheduler, restart_epochs, summarize, device, dtype)
 
