@@ -161,6 +161,8 @@ def objective(trial):
 
     trial.set_user_attr("seed", args.seed)
 
+    distributed = False
+
     if distributed:
         model = torch.nn.DataParallel(model)
 
