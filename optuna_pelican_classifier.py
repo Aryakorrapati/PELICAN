@@ -141,6 +141,10 @@ def define_dataloader(args):
     # Initialize dataloder
     args, datasets = initialize_datasets(args, args.datadir, num_pts=None)
 
+    print("initialize_datasets keys:", datasets.keys())
+    print("initialize_datasets train files:", datasets.get('train', 'None'))
+
+
     # Construct PyTorch dataloaders from datasets
     collate = lambda data: collate_fn(data, scale=args.scale, nobj=args.nobj, add_beams=args.add_beams, beam_mass=args.beam_mass)
     dataloaders = {split: DataLoader(dataset,
