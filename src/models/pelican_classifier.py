@@ -182,7 +182,7 @@ class PELICANClassifier(nn.Module):
 
 
         # Apply the sequence of PELICAN equivariant 2->2 blocks with the IRC weighting.
-        act1 = self.net2to2(inputs, mask = edge_mask.unsqueeze(-1), nobj = nobj,
+        act1 = self.net2to2(inputs, mask = particle_mask.unsqueeze(-1), nobj = nobj,
                             irc_weight = irc_weight if self.irc_safe else None)
 
         # The last equivariant 2->0 block is constructed here by hand: message layer, dropout, and Eq2to0.
