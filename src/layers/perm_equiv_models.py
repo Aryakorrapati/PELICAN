@@ -346,6 +346,10 @@ class Eq2to2(nn.Module):
         if self.activate_lin:
             output = self.activation_fn(output)
 
+        print("output.shape:", output.shape)
+        print("mask.shape:", mask.shape)
+
+
         if mask is not None:
             output = output * mask
         return output
