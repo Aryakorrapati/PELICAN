@@ -212,6 +212,10 @@ class MessageNet(nn.Module):
 
         # If mask is included, mask the output
         if mask is not None:
+            print("x.shape:", x.shape)
+            print("mask.shape:", mask.shape)
+            print("self.zero.shape:", self.zero.shape)
+
             x = torch.where(mask, x, self.zero)
 
         if self.batchnorm: 
