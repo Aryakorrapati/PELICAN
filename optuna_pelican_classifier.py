@@ -226,7 +226,7 @@ if __name__ == '__main__':
     print(f"Using storage string: {storage}")
 
 
-    study = optuna.create_study(study_name=args.study_name, storage=storage, direction=direction, load_if_exists=False,
+    study = optuna.create_study(study_name=args.study_name, storage=storage, direction=direction, load_if_exists=True,
                                 pruner=pruner, sampler=sampler)
 
     # init_params =  {
