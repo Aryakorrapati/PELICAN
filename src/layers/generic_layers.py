@@ -235,6 +235,11 @@ class MessageNet(nn.Module):
                             mask = mask.expand(batch, nobj, nobj, one)  # [batch, nobj, nobj, 1]
                         print(f"x.unsqueeze(1).shape: {x.unsqueeze(1).shape}, mask.shape: {mask.shape}")
 
+                        print("Before batchnorm, mask.shape:", mask.shape, "x.shape:", x.shape)
+                        # Fix mask shape if needed
+                        if mask.shape[-1] == x.shape[-1] and mask.shape[-2] == x.shape[-2]:
+                            mask = mask[..., 0]
+                        print("Fixed mask.shape:", mask.shape)
                         x = self.normlayer(x.unsqueeze(1), mask).squeeze(1)
                     else:
                         x = self.normlayer(x.unsqueeze(-1).permute(0,2,1,3)).permute(0,2,1,3).squeeze(-1)
