@@ -47,9 +47,6 @@ class MaskedBatchNorm1d(nn.BatchNorm1d):
         self.zero = torch.tensor(0, device=device, dtype=dtype)
 
     def forward(self, inp, mask):
-        print("MaskedBatchNorm call:")
-        print("inp.shape:", inp.shape)
-        print("mask.shape:", mask.shape)
 
         self._check_input_dim(inp)
         
