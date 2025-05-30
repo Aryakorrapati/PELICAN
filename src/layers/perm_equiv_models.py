@@ -411,7 +411,6 @@ class Net2to2(nn.Module):
         Returns: N x m x m x out_dim
         '''
 
-        print("inputs.shape:", inputs.shape)
         print("Net2to2.in_dim:", self.net2to2.in_dim)
 
         assert (x.shape[-1] == self.in_dim), "Input dimension of Net2to2 doesn't match the dimension of the input tensor"
