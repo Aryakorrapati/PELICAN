@@ -188,10 +188,7 @@ class PELICANClassifier(nn.Module):
             mask_for_net2to2 = particle_mask.unsqueeze(-1)  # [batch, nobj, 1]
         else:
             mask_for_net2to2 = edge_mask  # [batch, nobj, nobj, 1]
-        print("inputs:", inputs)
         print("type(inputs):", type(inputs))
-
-        print("inputs.shape:", inputs.shape)
         print("mask_for_net2to2.shape:", mask_for_net2to2.shape)
 
         if inputs.dim() == 3:
