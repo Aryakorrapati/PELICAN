@@ -196,6 +196,21 @@ class PELICANClassifier(nn.Module):
             x_i = inputs.unsqueeze(2).expand(B, N, N, F)
             x_j = inputs.unsqueeze(1).expand(B, N, N, F)
             inputs = torch.cat([x_i, x_j], dim=-1)  # Now [B, N, N, 2F]
+
+        # Project to correct feature size if needed
+        if inputs.shape[-1] != self.net2to2.in_dim:
+            print(f"Projecting from {inputs.shape[-1]} to {self.net2to2.in_dim}")
+            input_shape = inputs.shape
+            last_dim = input_shape[-1]
+            out_dim = self.net2to2.in_dim
+            if (self.input_proj is None) or (self.input_proj.in_features != last_dim) or (self.input_proj.out_features != out_dim):
+                self.input_proj = torch.nn.Linear(last_dim, out_dim).to(inputs.device)
+            flat_inputs = inputs.view(-1, last_dim)
+            projected = self.input_proj(flat_inputs)
+            new_shape = input_shape[:-1] + (out_dim,)
+            inputs = projected.view(*new_shape)
+
+
         act1 = self.net2to2(inputs, mask=mask_for_net2to2, nobj=nobj, irc_weight=irc_weight if self.irc_safe else None)
 
         # The last equivariant 2->0 block is constructed here by hand: message layer, dropout, and Eq2to0.
