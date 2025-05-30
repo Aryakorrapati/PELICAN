@@ -190,6 +190,12 @@ class PELICANClassifier(nn.Module):
             mask_for_net2to2 = edge_mask  # [batch, nobj, nobj, 1]
         print("inputs.shape:", inputs.shape)
         print("mask_for_net2to2.shape:", mask_for_net2to2.shape)
+
+        if inputs.dim() == 3:
+            B, N, F = inputs.shape
+            x_i = inputs.unsqueeze(2).expand(B, N, N, F)
+            x_j = inputs.unsqueeze(1).expand(B, N, N, F)
+            inputs = torch.cat([x_i, x_j], dim=-1)  # Now [B, N, N, 2F]
         act1 = self.net2to2(inputs, mask=mask_for_net2to2, nobj=nobj, irc_weight=irc_weight if self.irc_safe else None)
 
         # The last equivariant 2->0 block is constructed here by hand: message layer, dropout, and Eq2to0.
