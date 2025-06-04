@@ -253,7 +253,7 @@ def init_scheduler(args, optimizer):
             steps_per_epoch=minibatch_per_epoch,
             pct_start=0.20,  # Optional: you can make this configurable too
             anneal_strategy='cos',  # Consistent with your other decay styles
-            div_factor=25.0  # Optional: set how far to start below max_lr
+            div_factor=100  # Optional: set how far to start below max_lr
         )
     else:
         raise ValueError('Incorrect choice for lr_decay_type!')
