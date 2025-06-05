@@ -40,6 +40,8 @@ def suggest_params(args, trial):
     args.batch_size = trial.suggest_categorical("batch_size", [16, 32, 64, 128, 256])
     args.lr_init = trial.suggest_loguniform("lr_init", 1e-5, 1e-2)        # or whatever range you want
     args.pct_start = trial.suggest_float("pct_start", 0.05, 0.5)          # for OneCycleLR, 5% to 50% is typical
+    args.max_lr = trial.suggest_loguniform("max_lr", 1e-5, 1e-2)
+
 
 
     args.double = trial.suggest_categorical("double", [False, True])
@@ -298,7 +300,7 @@ if __name__ == '__main__':
     #                 }
     # study.enqueue_trial(init_params)
                             
-    study.optimize(objective, n_trials=50, callbacks=[optuna.study.MaxTrialsCallback(200, states=(TrialState.COMPLETE,))])
+    study.optimize(objective, n_trials=100, callbacks=[optuna.study.MaxTrialsCallback(200, states=(TrialState.COMPLETE,))])
 
     pruned_trials = study.get_trials(deepcopy=False, states=[TrialState.PRUNED])
     complete_trials = study.get_trials(deepcopy=False, states=[TrialState.COMPLETE])
