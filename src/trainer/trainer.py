@@ -18,7 +18,7 @@ class Trainer:
     Class to train network. Includes checkpoints, optimizer, scheduler,
     """
     def __init__(self, args, dataloaders, model, loss_fn, metrics_fn, minibatch_metrics_fn, minibatch_metrics_string_fn, 
-                 optimizer, scheduler, restart_epochs, device_id, device, dtype):
+                 optimizer, scheduler, restart_epochs, device_id, device, dtype, trial_number=None):
         np.set_printoptions(precision=5)
         self.args = args
         self.dataloaders = dataloaders
@@ -30,6 +30,7 @@ class Trainer:
         self.optimizer = optimizer
         self.scheduler = scheduler #For dyanmic scheduler
         self.restart_epochs = restart_epochs
+        self.trial_number = trial_number
 
         self.lr_history = [] #Store learning rates for plotting
         self.loss_history = []
@@ -363,11 +364,12 @@ class Trainer:
             plt.figure(figsize=(12, 5))
 
         # Plot Training Loss
+
             plt.subplot(1, 2, 1)
             plt.plot(self.loss_history, label="Training Loss", color="blue")
             plt.xlabel("Batch")
             plt.ylabel("Loss")
-            plt.title("Training Loss Over Time")
+            plt.title(f"Training Loss Over Time (Trial {self.trial_number})")
             plt.legend()
 
         # Plot Learning Rate Schedule

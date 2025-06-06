@@ -204,7 +204,7 @@ def objective(trial):
     summarize = False
 
     # Instantiate the training class
-    trainer = Trainer(args, dataloaders, model, loss_fn, metrics, minibatch_metrics, minibatch_metrics_string, optimizer, scheduler, restart_epochs, summarize, device, dtype)
+    trainer = Trainer(args, dataloaders, model, loss_fn, metrics, minibatch_metrics, minibatch_metrics_string, optimizer, scheduler, restart_epochs, summarize, device, dtype, trial_number=trial.number)
 
     # Load from checkpoint file. If no checkpoint file exists, automatically does nothing.
     trainer.load_checkpoint()
@@ -300,7 +300,7 @@ if __name__ == '__main__':
     #                 }
     # study.enqueue_trial(init_params)
                             
-    study.optimize(objective, n_trials=100, callbacks=[optuna.study.MaxTrialsCallback(200, states=(TrialState.COMPLETE,))])
+    study.optimize(objective, n_trials=10, callbacks=[optuna.study.MaxTrialsCallback(200, states=(TrialState.COMPLETE,))])
 
     pruned_trials = study.get_trials(deepcopy=False, states=[TrialState.PRUNED])
     complete_trials = study.get_trials(deepcopy=False, states=[TrialState.COMPLETE])
