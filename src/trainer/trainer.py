@@ -278,10 +278,10 @@ class Trainer:
                 print(logstring)
 
 
-    def _step_lr_batch(self):
-        self.scheduler.step()
-        self.scheduler.step()
-        self.lr_history.append(self.scheduler.get_last_lr()[0]) #Track learning rate for plotting
+    #def _step_lr_batch(self):
+        #self.scheduler.step()
+        #self.scheduler.step()
+        #self.lr_history.append(self.scheduler.get_last_lr()[0]) #Track learning rate for plotting
 
     def _step_lr_epoch(self):
         #if not self.args.lr_minibatch:
@@ -302,7 +302,7 @@ class Trainer:
     def train(self, trial=None, metric_to_report='loss'):
         start_epoch = self.epoch
         start_minibatch = self.minibatch
-        patience = 5  # Stop if validation loss doesn't improve for 5 epochs
+        patience = 10  # Stop if validation loss doesn't improve for 5 epochs
         best_val_loss = float('inf')  # Track best validation loss
         patience_counter = 0  # Counter for epochs with no improvement
         for epoch in range(start_epoch, self.args.num_epoch + 1):
@@ -454,9 +454,9 @@ class Trainer:
             if not self.args.quiet and not all(param.grad is not None for param in dict(self.model.named_parameters()).values()):
                 logger.warning("The following params have missing gradients at backward pass (they are probably not being used in output):\n", {key: '' for key, param in self.model.named_parameters() if param.grad is None})
             # Step optimizer and learning rate
-            self.optimizer.step()
+            #self.optimizer.step()
             # self.model.apply(_max_norm)
-            self._step_lr_batch()
+            #self._step_lr_batch()
 
             targets = all_gather(targets).detach().cpu()
             predict = {key: all_gather(val).detach().cpu() for key, val in predict.items()}
