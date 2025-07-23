@@ -217,7 +217,6 @@ class MessageNet(nn.Module):
             print("x.shape:", x.shape)
             print("mask.shape:", mask.shape)
             print("self.zero.shape:", self.zero.shape)
-            traceback.print_stack()
 
             if mask.dim() == 3:
                 mask = mask.unsqueeze(2)

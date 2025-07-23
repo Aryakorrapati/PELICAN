@@ -122,55 +122,55 @@ class MaskedBatchNorm2d(nn.BatchNorm2d):
         self.zero = torch.tensor(0, device=device, dtype=dtype)
 
     def forward(self, inp, mask):
+        """
+        inp : [B, N, N, C]   (rank-4)
+        mask: [B, N, N]      (rank-3, 1 for valid, 0 for pad)
+        """
         self._check_input_dim(inp)
-        
-        # We transform the mask into a sort of P(inp) with equal probabilities
-        # for all unmasked elements of the tensor, and 0 probability for masked
-        # ones.
 
-        # mask = lengths_to_mask(lengths, max_len=inp.shape[-1], dtype=inp.dtype)
+        # ---- sanity & broadcast ----
+        assert mask.dim() == 3, f'Expected mask [B,N,N], got {mask.shape}'
+        mask_bool = mask.bool()                         # keep a boolean for torch.where
+        mask = mask_bool.unsqueeze(-1).to(inp.dtype)    # [B,N,N,1]
 
-        assert len(mask.shape) == 4, f'Expected 4 dimensions in mask, instead got {len(mask.shape)} and shape {mask.shape}'
-        
-        mask_bool = mask
-        n = mask.sum()
-        mask = mask / n
+        # total unmasked count (scalar, avoid div0)
+        n = mask.sum().clamp_min(1.0)
 
+        # running stat factor
         if self.training and self.track_running_stats:
             if self.num_batches_tracked is not None:
                 self.num_batches_tracked += 1
-                if self.momentum is None:  # use cumulative moving average
+                if self.momentum is None:
                     exponential_average_factor = 1.0 / float(self.num_batches_tracked)
-                else:  # use exponential moving average
+                else:
                     exponential_average_factor = self.momentum
 
-        # calculate running estimates
         if self.training and n > 1:
-            # Here lies the trick. Using Var(X) = E[X^2] - E[X]^2 as the biased
-            # variance, we do not need to make any tensor shape manipulation.
-            # mean = E[X] is simply the sum-product of our "probability" mask with the input...
-            mean = (mask * inp).sum([0, 1, 2])
-            # ...whereas Var(X) is directly derived from the above formulae
-            # This should be numerically equivalent to the biased sample variance
-            var = (mask * inp ** 2).sum([0, 1, 2]) - mean ** 2
+            # E[x] and Var[x] over batch & both spatial dims (0,1,2)
+            mean = (mask * inp).sum(dim=(0, 1, 2)) / n
+            ex2  = (mask * (inp ** 2)).sum(dim=(0, 1, 2)) / n
+            var  = ex2 - mean ** 2
+
             with torch.no_grad():
-                self.running_mean = exponential_average_factor * mean\
-                    + (1 - exponential_average_factor) * self.running_mean
-                # Update running_var with unbiased var
-                self.running_var = exponential_average_factor * var * n / (n - 1)\
-                    + (1 - exponential_average_factor) * self.running_var
+                self.running_mean = exponential_average_factor * mean + \
+                                    (1 - exponential_average_factor) * self.running_mean
+                # Unbiased correction
+                self.running_var  = exponential_average_factor * var * (n / (n - 1)) + \
+                                    (1 - exponential_average_factor) * self.running_var
         else:
             mean = self.running_mean
-            var = self.running_var
+            var  = self.running_var
 
-        inp = (inp - mean[None, None, None, :]) / (torch.sqrt(var[None, None, None, :] + self.eps))
-
+        # ---- normalize ----
+        inp = (inp - mean[None, None, None, :]) / torch.sqrt(var[None, None, None, :] + self.eps)
         if self.affine:
             inp = inp * self.weight[None, None, None, :] + self.bias[None, None, None, :]
 
-        inp = torch.where(mask_bool, inp, self.zero)
+        # zero-out padded positions
+        inp = torch.where(mask_bool.unsqueeze(-1), inp, self.zero)
 
         return inp
+
 class MaskedBatchNorm3d(nn.BatchNorm3d):
     """
     Masked verstion of the 3D Batch normalization.
