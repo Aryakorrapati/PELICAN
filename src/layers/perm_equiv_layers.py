@@ -194,7 +194,6 @@ def eops_2_to_1(inputs, nobj=None, nobj_avg=49, aggregation='mean', weight=None)
 
 
 def eops_2_to_2(inputs, nobj=None, nobj_avg=49, aggregation='mean', weight=None, skip_order_zero=False, folklore=False):
-    print("In eops_2_to_2, inputs.shape:", inputs.shape)
     if inputs.dim() == 3:
         # [batch, nobj, features] --> [batch, nobj, nobj, features]
         inputs = inputs.unsqueeze(2).expand(-1, -1, inputs.shape[1], -1)
