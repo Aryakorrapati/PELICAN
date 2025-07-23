@@ -47,54 +47,53 @@ class MaskedBatchNorm1d(nn.BatchNorm1d):
         self.zero = torch.tensor(0, device=device, dtype=dtype)
 
     def forward(self, inp, mask):
+        # inp: [B, N, N, C]
+        # mask: [B, N, N]  (bool or 0/1 float)
 
         self._check_input_dim(inp)
-        
-        # We transform the mask into a sort of P(inp) with equal probabilities
-        # for all unmasked elements of the tensor, and 0 probability for masked
-        # ones.
 
-        # mask = lengths_to_mask(lengths, max_len=inp.shape[-1], dtype=inp.dtype)
-        
-        assert len(mask.shape) == 3, f'Expected 3 dimensions in mask, instead got {len(mask.shape)} and shape {mask.shape}'
+        assert mask.dim() == 3, f'Expected mask [B,N,N], got {mask.shape}'
+        # Keep a boolean version for torch.where
+        mask_bool = mask.bool()
 
-        mask_bool = mask
-        n = mask.sum()
-        mask = mask / n
-        mask = mask.unsqueeze(-1).expand(inp.shape)
+        # Broadcast mask to channels
+        mask = mask.unsqueeze(-1).to(inp.dtype)          # [B,N,N,1]
+
+        # Total number of unmasked elements (scalar)
+        n = mask_bool.sum().clamp_min(1).to(inp.dtype)
 
         if self.training and self.track_running_stats:
             if self.num_batches_tracked is not None:
                 self.num_batches_tracked += 1
-                if self.momentum is None:  # use cumulative moving average
+                if self.momentum is None:
                     exponential_average_factor = 1.0 / float(self.num_batches_tracked)
-                else:  # use exponential moving average
+                else:
                     exponential_average_factor = self.momentum
 
-        # calculate running estimates
         if self.training and n > 1:
-            # Here lies the trick. Using Var(X) = E[X^2] - E[X]^2 as the biased
-            # variance, we do not need to make any tensor shape manipulation.
-            # mean = E[X] is simply the sum-product of our "probability" mask with the input...
-            mean = (mask * inp).sum([0, 1])
-            # ...whereas Var(X) is directly derived from the above formulae
-            # This should be numerically equivalent to the biased sample variance
-            var = (mask * inp ** 2).sum([0, 1]) - mean ** 2
+            # E[x] = sum(mask*x)/n  over batch & spatial dims (0,1,2)
+            mean = (mask * inp).sum(dim=(0,1,2)) / n
+            # Var = E[x^2] - E[x]^2
+            ex2  = (mask * (inp**2)).sum(dim=(0,1,2)) / n
+            var  = ex2 - mean**2
+
             with torch.no_grad():
-                self.running_mean = exponential_average_factor * mean\
-                    + (1 - exponential_average_factor) * self.running_mean
-                # Update running_var with unbiased var
-                self.running_var = exponential_average_factor * var * n / (n - 1)\
-                    + (1 - exponential_average_factor) * self.running_var
+                self.running_mean = exponential_average_factor * mean + \
+                                    (1 - exponential_average_factor) * self.running_mean
+                # unbiased correction
+                self.running_var  = exponential_average_factor * var * (n/(n-1)) + \
+                                    (1 - exponential_average_factor) * self.running_var
         else:
             mean = self.running_mean
-            var = self.running_var
+            var  = self.running_var
 
-        inp = (inp - mean[None, None, :]) / (torch.sqrt(var[None, None, :] + self.eps))
+        # Normalize
+        inp = (inp - mean[None,None,None,:]) / torch.sqrt(var[None,None,None,:] + self.eps)
         if self.affine:
-            inp = inp * self.weight[None, None, :] + self.bias[None, None, :]
+            inp = inp * self.weight[None,None,None,:] + self.bias[None,None,None,:]
 
-        inp = torch.where(mask, inp, self.zero)
+        # Zero out masked positions
+        inp = torch.where(mask_bool.unsqueeze(-1), inp, self.zero)
 
         return inp
 
