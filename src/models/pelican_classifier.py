@@ -214,7 +214,7 @@ class PELICANClassifier(nn.Module):
         act1 = self.net2to2(inputs, mask=mask_for_net2to2, nobj=nobj, irc_weight=irc_weight if self.irc_safe else None)
 
         # The last equivariant 2->0 block is constructed here by hand: message layer, dropout, and Eq2to0.
-        act2 = self.msg_2to0(act1, mask=edge_mask.unsqueeze(-1))
+        act2 = self.msg_2to0(act1, mask=edge_mask) 
         if self.dropout:
             act2 = self.dropout_layer(act2)
         act3 = self.agg_2to0(act2, nobj = nobj, irc_weight = irc_weight if self.irc_safe else None)
