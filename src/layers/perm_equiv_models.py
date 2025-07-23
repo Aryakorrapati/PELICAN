@@ -100,8 +100,6 @@ class Eq2to0(nn.Module):
         if self.activate_lin:
             output = self.activation_fn(output)
 
-        if mask is not None:
-            output = output * mask
         return output
 
 class Eq1to2(nn.Module):
@@ -176,7 +174,15 @@ class Eq1to2(nn.Module):
             output = self.activation_fn(output)
 
         if mask is not None:
-            output = output * mask
+            # output: [B, N, C] ; mask usually [B, N] or [B, N, 1]
+            if mask.dim() == 2:
+                mask_exp = mask.unsqueeze(-1).to(output.dtype)        # [B,N,1]
+            elif mask.dim() == 3 and mask.shape[-1] == 1:
+                mask_exp = mask.to(output.dtype)                      # [B,N,1]
+            else:
+                # already broadcastable or wrong shape – just try direct
+                mask_exp = mask.to(output.dtype)
+            output = output * mask_exp
         return output
 
 
@@ -253,8 +259,16 @@ class Eq2to1(nn.Module):
             output = self.activation_fn(output)
 
         if mask is not None:
-            output = output * mask
+            # output: [B, N, C] ; mask: [B, N] or [B, N, 1]
+            if mask.dim() == 2:
+                mask_exp = mask.unsqueeze(-1).to(output.dtype)
+            elif mask.dim() == 3 and mask.shape[-1] == 1:
+                mask_exp = mask.to(output.dtype)
+            else:
+                mask_exp = mask.to(output.dtype)
+            output = output * mask_exp
         return output
+
 
 class Eq2to2(nn.Module):
     def __init__(self, in_dim, out_dim, ops_func=None, activate_agg=False, activate_lin=True, activation = 'leakyrelu', config='s', factorize=True, folklore=False, average_nobj=49, device=torch.device('cpu'), dtype=torch.float):
@@ -346,25 +360,20 @@ class Eq2to2(nn.Module):
         if self.activate_lin:
             output = self.activation_fn(output)
 
-        print("output.shape:", output.shape)
-        print("mask.shape:", mask.shape)
-
+        # ----- remove debug prints or keep if you want -----
+        # print("output.shape:", output.shape)
+        # print("mask.shape:", mask.shape)
 
         if mask is not None:
-            if mask.dim() == 3:  # [batch, nobj, 1]
-                mask = mask.unsqueeze(2).expand(-1, -1, output.shape[2], -1)
-            if mask.shape[-1] == 1 and output.shape[-1] != 1:
-                mask = mask.expand(-1, -1, -1, output.shape[-1])
-            output = output * mask
+            # mask: [B,N,N]  -> broadcast to channel dim
+            if mask.dim() == 3:
+                mask_exp = mask.unsqueeze(-1).to(output.dtype)   # [B,N,N,1]
+            else:
+                mask_exp = mask.to(output.dtype)                 # already broadcastable
+            output = output * mask_exp
 
-            # AFTER
-            if mask is not None:
-                if mask.dim() == 3:            # [B,N,N]
-                    mask_exp = mask.unsqueeze(-1).to(output.dtype)   # [B,N,N,1]
-                else:                           # already broadcastable
-                    mask_exp = mask.to(output.dtype)
-                output = output * mask_exp
         return output
+
 
 # class Net1to1(nn.Module):
 #     def __init__(self, num_channels, ops_func=None, activation='leakyrelu', batchnorm=None, device=torch.device('cpu'), dtype=torch.float):
