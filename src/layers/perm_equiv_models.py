@@ -356,6 +356,14 @@ class Eq2to2(nn.Module):
             if mask.shape[-1] == 1 and output.shape[-1] != 1:
                 mask = mask.expand(-1, -1, -1, output.shape[-1])
             output = output * mask
+
+            # AFTER
+            if mask is not None:
+                if mask.dim() == 3:            # [B,N,N]
+                    mask_exp = mask.unsqueeze(-1).to(output.dtype)   # [B,N,N,1]
+                else:                           # already broadcastable
+                    mask_exp = mask.to(output.dtype)
+                output = output * mask_exp
         return output
 
 # class Net1to1(nn.Module):
