@@ -12,6 +12,9 @@ def setup_argparse():
 
     parser.add_argument('--yaml', type=str, default=None, action='append')
 
+    parser.add_argument('--train_fraction', type=float, default=1.0,
+                    help='Fraction of the training set to use (0 < f ≤ 1).')
+
     #CutMix and Mixup augmentations
     parser.add_argument('--aug_mixcut', action='store_true', help='Enable Mixup + CutMix augmentations')
 

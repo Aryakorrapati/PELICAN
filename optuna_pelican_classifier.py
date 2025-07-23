@@ -1,5 +1,6 @@
 import torch
 from torch.utils.data import DataLoader
+from torch.utils.data import Subset
 
 import os
 import logging
@@ -156,6 +157,13 @@ def define_dataloader(args):
 
     # Initialize dataloder
     args, datasets = initialize_datasets(args, args.datadir, num_pts=None)
+
+    if args.train_fraction < 1.0:
+        full_train = datasets['train']
+        n_keep = int(len(full_train) * args.train_fraction)
+        idx = torch.randperm(len(full_train))[:n_keep].tolist()
+        datasets['train'] = Subset(full_train, idx)
+        logger.info(f'Using {n_keep}/{len(full_train)} training samples (fraction={args.train_fraction}).')
 
     print("args.datadir:", args.datadir)
 

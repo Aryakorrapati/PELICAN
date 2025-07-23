@@ -35,6 +35,10 @@ class Trainer:
         self.lr_history = [] #Store learning rates for plotting
         self.loss_history = []
 
+        self.train_loss_hist = []
+        self.valid_loss_hist = []
+        self.test_loss_hist  = []   # optional; only if you log test every epoch
+
         self.summarize_csv =args.summarize_csv
         self.summarize = args.summarize
         if args.summarize:
@@ -302,7 +306,7 @@ class Trainer:
     def train(self, trial=None, metric_to_report='loss'):
         start_epoch = self.epoch
         start_minibatch = self.minibatch
-        patience = 10  # Stop if validation loss doesn't improve for 5 epochs
+        patience = 100000  # Stop if validation loss doesn't improve for 5 epochs
         best_val_loss = float('inf')  # Track best validation loss
         patience_counter = 0  # Counter for epochs with no improvement
         for epoch in range(start_epoch, self.args.num_epoch + 1):
@@ -329,6 +333,8 @@ class Trainer:
 
                 # Extract validation loss
                 current_val_loss = valid_metrics['loss']
+                self.train_loss_hist.append(train_metrics['loss'])
+                self.valid_loss_hist.append(valid_metrics['loss'])
 
                 # Check if validation loss improved
                 if current_val_loss < best_val_loss:
@@ -383,6 +389,25 @@ class Trainer:
         # Show & Save the Figure
             plt.savefig("training_progress.png") 
             plt.show()
+
+        # --- Double descent curve plot ---
+        if self.device_id <= 0:
+            epochs = range(1, len(self.train_loss_hist)+1)
+            plt.figure(figsize=(7,5))
+            plt.plot(epochs, self.train_loss_hist, label='Train loss')
+            plt.plot(epochs, self.valid_loss_hist, label='Valid loss')
+            if len(self.test_loss_hist) == len(self.train_loss_hist):
+                plt.plot(epochs, self.test_loss_hist,  label='Test loss')
+
+            plt.xlabel('Epoch')
+            plt.ylabel('Loss')
+            plt.title('Loss vs Epoch (check for double descent)')
+            plt.legend()
+            out_png = os.path.join(self.args.workdir, self.args.logdir, 'double_descent.png')
+            plt.savefig(out_png, dpi=200, bbox_inches='tight')
+            plt.close()
+            logger.info(f"Saved double descent plot to {out_png}")
+
 
         return self.best_epoch, self.best_metrics
 

@@ -1,0 +1,32 @@
+
+num_channels_scalar: 10
+
+num_channels_m:
+  - 
+    - 60
+  - 
+    - 60
+  - 
+    - 60
+  - 
+    - 60
+  - 
+    - 128
+num_channels_2to2: 
+  - 35
+  - 35
+  - 35
+  - 35
+  - 128
+num_channels_m_out:
+  - 60
+  - 35
+num_channels_out: 
+  - 60
+
+droupout: true
+drop_rate: 0.0
+
+weight_decay: 1e-6
+optim: adamw
+
