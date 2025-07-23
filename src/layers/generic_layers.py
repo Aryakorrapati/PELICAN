@@ -212,34 +212,22 @@ class MessageNet(nn.Module):
         for (lin, activation) in zip(self.linear, self.activations):
             x = activation(lin(x))
 
-        # If mask is included, mask the output
-        if mask is not None:
-            print("x.shape:", x.shape)
-            print("mask.shape:", mask.shape)
-            print("self.zero.shape:", self.zero.shape)
-
-            if mask.dim() == 3:
-                mask = mask.unsqueeze(2)
-                mask = mask.expand(-1, -1, x.shape[2], -1)
-            if mask.shape[-1] == 1 and x.shape[-1] != 1:
-                mask = mask.expand(-1, -1, -1, x.shape[-1])
-
         if self.batchnorm: 
             if self.batchnorm.startswith('b') or self.batchnorm.startswith('i'):
                 if len(x.shape)==3:
                     if self.masked:
-                        if mask is not None and mask.dim() == 3:
-                            batch, nobj, one = mask.shape
-                            mask = mask.unsqueeze(2)  # [batch, nobj, 1, 1]
-                            mask = mask.expand(batch, nobj, nobj, one)  # [batch, nobj, nobj, 1]
-                        print(f"x.unsqueeze(1).shape: {x.unsqueeze(1).shape}, mask.shape: {mask.shape}")
+                        if mask is not None and mask.dim()==3:
+                            # Expand to [B,N,N] for Eq2->2 style; your current x is [B,N,C]
+                            # Use the diagonal of the NxN mask (valid objects) as a 1D mask.
+                            diag_mask = torch.diagonal(mask, dim1=1, dim2=2)  # [B,N]
+                        else:
+                            diag_mask = None
 
-                        print("Before batchnorm, mask.shape:", mask.shape, "x.shape:", x.shape)
-                        # Fix mask shape if needed
-                        if mask.shape[-1] == x.shape[-1] and mask.shape[-2] == x.shape[-2]:
-                            mask = mask[..., 0]
-                        print("Fixed mask.shape:", mask.shape)
-                        x = self.normlayer(x.unsqueeze(1), mask).squeeze(1)
+                        # Call BN on a 3D tensor:
+                        if diag_mask is not None:
+                            x = self.normlayer(x, diag_mask)  # assumes your 3D BN accepts [B,N,C] + [B,N]
+                        else:
+                            x = self.normlayer(x.unsqueeze(-1).permute(0,2,1,3)).permute(0,2,1,3).squeeze(-1)
                     else:
                         x = self.normlayer(x.unsqueeze(-1).permute(0,2,1,3)).permute(0,2,1,3).squeeze(-1)
                 elif len(x.shape)==4:
