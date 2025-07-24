@@ -405,7 +405,7 @@ class Trainer:
             plt.legend()
             out_png = os.path.join(self.args.workdir, self.args.logdir, 'double_descent.png')
             plt.savefig(out_png, dpi=200, bbox_inches='tight')
-            plt.close()
+            plt.show()
             logger.info(f"Saved double descent plot to {out_png}")
 
 
